@@ -1,3 +1,4 @@
+import random
 import numpy as np
 
 class Layer:
@@ -5,17 +6,36 @@ class Layer:
         self.size = neuron_size
         self.neurons = np.array([Neuron(weight_size) for i in range(neuron_size)])
 
-    def feed_forward(prev_layer):
-        pass
+    def feed_forward(self, prev_layer):
+        #Get previous layer neurons' values
+        values = np.array([neuron.value for neuron in prev_layer.neurons])
+
+        for neuron in self.neurons:
+            neuron.feed_forward(values)
+            print(neuron.value)
+        print()
+        
+    def randomize_weights(self):
+        for neuron in self.neurons:
+            neuron.randomize_weights() 
 
 class Neuron:
     def __init__(self, weight_size):
         self.value = 0
         self.bias = 0
-        self.weights = [0] * weight_size
 
-    def feed_forward(prev_layer):
-        pass
+        self.weight_size = weight_size
+        self.weights = np.array([0] * weight_size)
+        self.randomize_weights()
+        
+    def feed_forward(self, values):
+        #Get previous layer neurons' values
+        print(values)
+        print(self.weights)
+        self.value = np.dot(values, self.weights) + self.bias
+
+    def randomize_weights(self):
+        self.weights = np.array([random.uniform(0.0, 1.0)] * self.weight_size)
         
         
 class NeuralNetwork:
@@ -47,7 +67,11 @@ class NeuralNetwork:
         self.layers[-1] = Layer(curr_layer_size, prev_layer_size)
 
     def feed_forward(self, inputs):
-        self.set_input()
+        self.set_input(inputs)
+
+        for i in range(1, len(self.layers)):
+            prev_layer = self.layers[i - 1]
+            self.layers[i].feed_forward(prev_layer)
 
     def set_input(self, inputs): 
         input_layer = self.layers[0]
@@ -55,3 +79,7 @@ class NeuralNetwork:
         #Set the neuron's values in the input layer to the input values
         for i, neuron in enumerate(input_layer.neurons):
             neuron.value = inputs[i]
+    
+    def randomize_weights(self):
+        for layer in self.layers:
+            layer.randomize_weights()
