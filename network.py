@@ -19,10 +19,6 @@ class Layer:
         self.neuron_size = neuron_size
         self.weight_size = weight_size
 
-        # print(self.neuron_size)
-        # print(self.weight_size)
-        # print()
-        
         self.activation = [0] * self.neuron_size
         self.error = [0] * self.neuron_size
         
@@ -86,7 +82,7 @@ class NeuralNetwork:
 
         return a
 
-    def backpropagation(self, a, expected):
+    def backpropagation(self, a, expected, eta = 0.5):
         actual = self.feed_forward(a)
 
         error = self.layers[-1].output_backpropagation(expected)
@@ -95,13 +91,7 @@ class NeuralNetwork:
             curr, prev = self.layers[i], self.layers[i + 1]
             curr.backpropagation(prev)
             
-        self.layers[0].apply_gradient(0.5, a)
+        self.layers[0].apply_gradient(eta, a)
         for i in range(1, len(self.layers)):
             curr, prev = self.layers[i], self.layers[i - 1]
-            curr.apply_gradient(0.5, prev.activation)
-
-
-
-    def backpropagation_output(self):
-        pass
-    
+            curr.apply_gradient(eta, prev.activation)
