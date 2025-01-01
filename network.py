@@ -98,6 +98,7 @@ class NeuralNetwork:
                 self.backpropagation(input, expected, eta)
 
 
+
     def backpropagation(self, a, expected, eta = 0.5):
         actual = self.feed_forward(a)
 
@@ -110,3 +111,9 @@ class NeuralNetwork:
         for i in range(1, len(self.layers)):
             curr, prev = self.layers[i], self.layers[i - 1]
             curr.apply_gradient(eta, prev.values)
+
+    def save_data():
+        pass
+
+    def load_data():
+        pass
