@@ -15,6 +15,14 @@ class Sigmoid(Activation):
     def derivative(self, x):
         return self.activate(x) * (1 - self.activate(x))
 
+
+class ReLU(Activation):
+    def activate(self, x):
+        return max(0, x)
+    
+    def derivative(self, x):
+        return 0 if x <= 0 else 1
+
 class Layer:
     def __init__(self, neuron_size, weight_size, activation):
         self.activation = activation
@@ -58,7 +66,6 @@ class Layer:
 
         return self.error
 
-
     def apply_gradient(self, eta, prev):
         activate = self.activation.activate
 
@@ -96,7 +103,6 @@ class NeuralNetwork:
             for data in dataset:
                 input, expected = data
                 self.backpropagation(input, expected, eta)
-
 
 
     def backpropagation(self, a, expected, eta = 0.5):
