@@ -18,9 +18,14 @@ for data in dataset:
 
 print()
 
-network.learn(dataset, 10000, 0.5)
+network.learn(dataset, 10000, 0.5, 2)
 
 for data in dataset:
     for val in list(map(float, network.feed_forward(data[0]))):
         print(f"{val:.3f}", end = ", ")
     print()
+
+# dataset = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 15, 23, 11, 12, 12 ,23]
+# n = 2
+# batches = [dataset[j : j + n] for j in range(0, len(dataset), n)]
+# print(batches)
