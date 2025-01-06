@@ -27,8 +27,8 @@ class Layer:
         activate = self.activation.activate
         derivative = self.activation.derivative
 
-        # Calculate derivative for output layer:
-        # dC/dZ = dA/dZ * dC/dA
+        # Calculate error for output layer:
+        # err = dA/dZ * dC/dA
         for i in range(self.neuron_size):
             cost_derivative = 2 * (activate(self.values[i]) - expected[i])
             activation_derivative = derivative(self.values[i])
@@ -40,10 +40,13 @@ class Layer:
         self.error = [0] * self.neuron_size
         derivative = self.activation.derivative
 
-        # Calculate the derivative for hidden layers:
-        # dC/dZ(l) = dA/dZ * dZ/dA * err(L + 1)
+        # Calculate the error terms for the error derivative (For 1 node in each layer)
+        # err(i) = dC/dZ(i) = dA(i)/dZ(i) * dZ(i + 1)/dA(i) * err(i + 1)
         for i in range(self.neuron_size):
+            #Calculate dZ(i + 1)/dA(i)
             res = sum([prev.error[j] * prev.weights[j][i] for j in range(prev.neuron_size)])
+
+            #Multiply dA(i)/dZ(i) due to chain rule
             res *= derivative(self.values[i])
             self.error[i] = res
 
@@ -53,11 +56,15 @@ class Layer:
         activate = self.activation.activate
 
         # Applies gradient on the weights
+        # dC/dW(i) = dZ(i)/dW(i) * dC/dZ(i)
+        # The error is dC/dZ(i)
         for i in range(self.neuron_size):
             for j in range(self.weight_size):
                 self.weights[i][j] -= eta * activate(prev[j]) * self.error[i]
 
         # Applies gradient on the biases
+        # dC/dB(i) = dZ(i)/dW(i) * dC/dB(i)
+        # The error is dC/dZ(i)
         for i in range(self.neuron_size):
             self.biases[i] -= eta * self.error[i]
 
