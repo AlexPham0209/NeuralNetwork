@@ -15,7 +15,6 @@ class Sigmoid(Activation):
     def derivative(self, x):
         return self.activate(x) * (1 - self.activate(x))
 
-
 class ReLU(Activation):
     def activate(self, x):
         return max(0, x)
@@ -57,10 +56,7 @@ class Layer:
         derivative = self.activation.derivative
 
         for i in range(self.neuron_size):
-            res = 0 
-            for j in range(prev.neuron_size):
-                res += prev.error[j] * prev.weights[j][i]
-
+            res = sum([prev.error[j] * prev.weights[j][i] for j in range(prev.neuron_size)])
             res *= derivative(self.values[i])
             self.error[i] = res
 
@@ -98,13 +94,17 @@ class NeuralNetwork:
 
         return a
 
-    def learn(self, dataset, iterations, eta):
+    def learn(self, dataset, iterations, eta, batch_size = -1):
+        temp = list(dataset)
         for i in range(iterations):
-            for data in dataset:
-                input, expected = data
-                self.backpropagation(input, expected, eta)
+            random.shuffle(temp)
+            batches = [temp[j : j + batch_size] for j in range(0, len(temp), batch_size)]
 
-
+            for batch in batches:
+                for data in batch:
+                    input, expected = data
+                    self.backpropagation(input, expected, eta)
+            
     def backpropagation(self, a, expected, eta = 0.5):
         actual = self.feed_forward(a)
 
