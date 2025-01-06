@@ -15,6 +15,9 @@ class Layer:
         self.randomize_biases()
 
     def feed_forward(self, a):
+        # Zip the weights and biases like this -> [(w1, b1), (w2, b1), ...]
+        # Then calculate the dot product between the weights and activation + bias 
+        # Matrix vector multiplication essentially
         self.values = [np.dot(a, w) + b for w, b in zip(self.weights, self.biases)]        
         return self.values
     
@@ -24,8 +27,8 @@ class Layer:
         activate = self.activation.activate
         derivative = self.activation.derivative
 
-        # Calculate cost derivative:
-        # dC/d
+        # Calculate derivative for output layer:
+        # dC/dZ = dA/dZ * dC/dA
         for i in range(self.neuron_size):
             cost_derivative = 2 * (activate(self.values[i]) - expected[i])
             activation_derivative = derivative(self.values[i])
@@ -35,9 +38,10 @@ class Layer:
 
     def backpropagation(self, prev):
         self.error = [0] * self.neuron_size
-        output = self.activation.activate
         derivative = self.activation.derivative
 
+        # Calculate the derivative for hidden layers:
+        # dC/dZ(l) = dA/dZ * dZ/dA * err(L + 1)
         for i in range(self.neuron_size):
             res = sum([prev.error[j] * prev.weights[j][i] for j in range(prev.neuron_size)])
             res *= derivative(self.values[i])
