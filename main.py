@@ -1,9 +1,10 @@
 import random
 import numpy as np
+import activation as act
 import network as nw
 
 
-network = nw.NeuralNetwork([3, 5, 5, 5, 5], nw.Sigmoid())
+network = nw.NeuralNetwork([3, 5, 5, 5, 5], act.Sigmoid())
 
 dataset = [
     ([0.125, 0.52124, 0.623], [0, 0, 0, 1, 0]), 
