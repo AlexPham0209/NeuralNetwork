@@ -1,26 +1,6 @@
 import random
+import activation as act
 import numpy as np
-
-class Activation:
-    def activate(self, x):
-        pass
-
-    def derivative(self, x):
-        pass
-
-class Sigmoid(Activation):
-    def activate(self, x):
-        return 1 / (1 + np.e ** (-x))
-
-    def derivative(self, x):
-        return self.activate(x) * (1 - self.activate(x))
-
-class ReLU(Activation):
-    def activate(self, x):
-        return max(0, x)
-    
-    def derivative(self, x):
-        return 0 if x <= 0 else 1
 
 class Layer:
     def __init__(self, neuron_size, weight_size, activation):
@@ -39,10 +19,13 @@ class Layer:
         return self.values
     
     def output_backpropagation(self, expected):
+        # Reset error vector for layer
         self.error = [0] * self.neuron_size
         activate = self.activation.activate
         derivative = self.activation.derivative
 
+        # Calculate cost derivative:
+        # dC/d
         for i in range(self.neuron_size):
             cost_derivative = 2 * (activate(self.values[i]) - expected[i])
             activation_derivative = derivative(self.values[i])
@@ -65,34 +48,36 @@ class Layer:
     def apply_gradient(self, eta, prev):
         activate = self.activation.activate
 
-        #Applies gradient on the weights
+        # Applies gradient on the weights
         for i in range(self.neuron_size):
             for j in range(self.weight_size):
                 self.weights[i][j] -= eta * activate(prev[j]) * self.error[i]
 
-        #Applies gradient on the biases
+        # Applies gradient on the biases
         for i in range(self.neuron_size):
             self.biases[i] -= eta * self.error[i]
 
+    # Randomizes all weights from 0 to 1 
     def randomize_weights(self):
         self.weights = [[random.uniform(0.0, 1.0) for j in range(self.weight_size)] for i in range(self.neuron_size)]
 
+    # Randomizes all biases from 0 to 1 
     def randomize_biases(self):
         self.biases = [random.uniform(0.0, 1.0) for i in range(self.neuron_size)]
 
 
 class NeuralNetwork:
-    def __init__(self, layer_size, activation = Sigmoid()):
+    def __init__(self, layer_size, activation = act.Sigmoid()):
         self.layer_size = layer_size
         self.activation = activation
         self.layers = [Layer(curr, prev, activation) for curr, prev in zip(layer_size[1:], layer_size)]
 
     def feed_forward(self, a):
-        #If size of the input vector does not match the amount of neurons in the input layer, return None
+        # If size of the input vector does not match the amount of neurons in the input layer, return None
         if len(a) != self.layer_size[0]:
             return None
         
-        #Go through each layer and feed fot
+        # Go through each layer and feed fot
         for layer in self.layers:
             a = list(map(self.activation.activate, layer.feed_forward(a)))
 
@@ -101,28 +86,28 @@ class NeuralNetwork:
     def learn(self, dataset, iterations, eta, batch_size = -1):
         temp = list(dataset)
         for i in range(iterations):
-            #Randomly shuffles the dataset and partitions it into mini batches
+            # Randomly shuffles the dataset and partitions it into mini batches
             random.shuffle(temp)
             batches = [temp[j : j + batch_size] for j in range(0, len(temp), batch_size)]
 
-            #Go through each mini-batch and train the neural network using each mini batch
+            #Go through each mini-batch and train the neural network using each sample
             for batch in batches:
                 for data in batch:
                     input, expected = data
                     self.backpropagation(input, expected, eta)
     
-    #Trains the neural network using gradient descent
+    # Trains the neural network using gradient descent
     def backpropagation(self, a, expected, eta = 0.5):
-        #Feed forward algorithm to generate output values so we can evaluate the cost 
+        # Feed forward algorithm to generate output values so we can evaluate the cost 
         actual = self.feed_forward(a)
 
-        #Apply backpropagation algorithm to generate error for each layer
+        # Apply backpropagation algorithm to generate error for each layer
         error = self.layers[-1].output_backpropagation(expected)
         for i in range(len(self.layers) - 2, -1, -1):
             curr, prev = self.layers[i], self.layers[i + 1]
             curr.backpropagation(prev)
         
-        #Apply the gradient for each layer using the error of the previous layer
+        # Apply the gradient for each layer using the error of the previous layer
         self.layers[0].apply_gradient(eta, a)
         for i in range(1, len(self.layers)):
             curr, prev = self.layers[i], self.layers[i - 1]
