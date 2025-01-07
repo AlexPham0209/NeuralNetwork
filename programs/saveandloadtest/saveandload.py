@@ -8,9 +8,10 @@ import activation as act
 import network as nw
 
 dataset = [
-    ([0.125, 0.52124, 0.623], [0, 0, 0, 1, 0]), 
-    ([0.923, 0.17, 0.345], [0, 0, 1, 0, 0]),
-    ([0.012, 0.29, 0.854], [0, 1, 0, 0, 0])
+    ([0.125, 0.521, 0.623], [0, 0, 0, 1, 0]), 
+    ([0.923, 0.170, 0.345], [0, 0, 1, 0, 0]),
+    ([0.012, 0.290, 0.854], [0, 1, 0, 0, 0]),
+    ([0.444, 0.754, 0.143], [1, 0, 0, 0, 0])
 ]
 
 def print_output(network, data):
@@ -21,10 +22,10 @@ def print_output(network, data):
     
 def train():
     global dataset 
-    network = nw.NeuralNetwork([3, 5, 5, 5, 5], act.Sigmoid())
+    network = nw.NeuralNetwork([3, 10, 10, 5], act.Sigmoid())
 
     print_output(network, dataset)
-    network.learn(dataset, 10000, 0.5, 2)
+    network.learn(dataset, 10000, 0.75, 2)
     print()
     print_output(network, dataset)
 
@@ -34,8 +35,7 @@ def train():
 
 def load():
     global dataset
-    network = nw.NeuralNetwork([3, 5, 5, 5, 5], act.Sigmoid())
-    network.load_data("test.json")
+    network = nw.NeuralNetwork([3, 5, 5, 5, 5], act.Sigmoid(), "test.json")
     print_output(network, dataset)
 
 

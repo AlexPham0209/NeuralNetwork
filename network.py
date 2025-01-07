@@ -23,8 +23,6 @@ class Layer:
         return self.values
     
     def output_backpropagation(self, expected):
-        # Reset error vector for layer
-        self.error = [0] * self.neuron_size
         activate = self.activation.activate
         derivative = self.activation.derivative
 
@@ -33,12 +31,11 @@ class Layer:
         for i in range(self.neuron_size):
             cost_derivative = 2 * (activate(self.values[i]) - expected[i])
             activation_derivative = derivative(self.values[i])
-            self.error[i] = cost_derivative * activation_derivative
-
+            self.error[i] += cost_derivative * activation_derivative
+        
         return self.error
 
     def backpropagation(self, prev):
-        self.error = [0] * self.neuron_size
         derivative = self.activation.derivative
 
         # Calculate the error terms for the error derivative (For 1 node in each layer)
@@ -49,11 +46,11 @@ class Layer:
 
             #Multiply dA(i)/dZ(i) due to chain rule
             res *= derivative(self.values[i])
-            self.error[i] = res
+            self.error[i] += res
 
         return self.error
 
-    def apply_gradient(self, eta, prev):
+    def apply_gradient(self, eta, prev, size = 1):
         activate = self.activation.activate
 
         # Applies gradient on the weights
@@ -61,13 +58,16 @@ class Layer:
         # The error is dC/dZ(i)
         for i in range(self.neuron_size):
             for j in range(self.weight_size):
-                self.weights[i][j] -= eta * activate(prev[j]) * self.error[i]
+                self.weights[i][j] -= eta * ((activate(prev[j]) * self.error[i]) / size)
 
         # Applies gradient on the biases
         # dC/dB(i) = dZ(i)/dW(i) * dC/dB(i)
         # The error is dC/dZ(i)
         for i in range(self.neuron_size):
-            self.biases[i] -= eta * self.error[i]
+            self.biases[i] -= eta * (self.error[i] / size)
+
+        #Resets the error after applying gradient vector
+        self.error = [0] * self.neuron_size
 
     # Randomizes all weights from 0 to 1 
     def randomize_weights(self):
@@ -79,7 +79,11 @@ class Layer:
 
 
 class NeuralNetwork:
-    def __init__(self, layer_size, activation = act.Sigmoid()):
+    def __init__(self, layer_size, activation = act.Sigmoid(), path = ""):
+        if len(path) > 0:
+            self.load_data(path)
+            return
+        
         self.layer_size = layer_size
         self.activation = activation
         self.layers = [Layer(curr, prev, activation) for curr, prev in zip(layer_size[1:], layer_size)]
@@ -107,6 +111,8 @@ class NeuralNetwork:
                 for data in batch:
                     input, expected = data
                     self.backpropagation(input, expected, eta)
+                    
+                self.apply_gradient(input, eta, len(batch))
     
     # Trains the neural network using gradient descent
     def backpropagation(self, a, expected, eta = 0.5):
@@ -119,21 +125,24 @@ class NeuralNetwork:
             curr, prev = self.layers[i], self.layers[i + 1]
             curr.backpropagation(prev)
         
+    def apply_gradient(self, a, eta, size):
         # Apply the gradient for each layer using the error of the previous layer
-        self.layers[0].apply_gradient(eta, a)
+        self.layers[0].apply_gradient(eta, a, size)
         for i in range(1, len(self.layers)):
             curr, prev = self.layers[i], self.layers[i - 1]
-            curr.apply_gradient(eta, prev.values)
+            curr.apply_gradient(eta, prev.values, size)
 
     def save_data(self):
         data = dict()
 
+        #Overall neural network data
         data["layers"] = self.layer_size
         data["activation_type"] = str(self.activation)
 
+        #Create new JSON key for each layer
         for i, layer in enumerate(self.layers):
             layer_data = dict()
-
+            
             layer_data["type"] = "Dense"
             layer_data["weights_size"] = layer.weight_size
             layer_data["biases_size"] = layer.neuron_size
@@ -146,15 +155,18 @@ class NeuralNetwork:
 
 
     def load_data(self, path):
+        #Read create dictionary from string with JSON data in it
         data = json.loads(open(path).read())
         self.layer_size = data["layers"]
-
+        
+        #Based on the activation_type parameter, create the activation object
         match data["activation_type"]:
             case "Sigmoid":
                 self.activation = act.Sigmoid()
             case "ReLU":
                 self.activation = act.ReLU()
-
+        
+        #Creates layers for neural network
         self.layers = []
         for i in range(len(self.layer_size) - 1):
             layer_data = data[str(i)]
