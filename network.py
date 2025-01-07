@@ -1,3 +1,4 @@
+import json
 import random
 import activation as act
 import numpy as np
@@ -124,8 +125,42 @@ class NeuralNetwork:
             curr, prev = self.layers[i], self.layers[i - 1]
             curr.apply_gradient(eta, prev.values)
 
-    def save_data():
-        pass
+    def save_data(self):
+        data = dict()
 
-    def load_data():
-        pass
+        data["layers"] = self.layer_size
+        data["activation_type"] = str(self.activation)
+
+        for i, layer in enumerate(self.layers):
+            layer_data = dict()
+
+            layer_data["type"] = "Dense"
+            layer_data["weights_size"] = layer.weight_size
+            layer_data["biases_size"] = layer.neuron_size
+            layer_data["weights"] = layer.weights
+            layer_data["biases"] = layer.biases
+
+            data[i] = layer_data
+
+        return data
+
+
+    def load_data(self, path):
+        data = json.loads(open(path).read())
+        self.layer_size = data["layers"]
+
+        match data["activation_type"]:
+            case "Sigmoid":
+                self.activation = act.Sigmoid()
+            case "ReLU":
+                self.activation = act.ReLU()
+
+        self.layers = []
+        for i in range(len(self.layer_size) - 1):
+            layer_data = data[str(i)]
+            layer = Layer(layer_data["biases_size"], layer_data["weights_size"], self.activation)
+            layer.weights = layer_data["weights"]
+            layer.biases = layer_data["biases"]
+
+            self.layers.append(layer)
+
