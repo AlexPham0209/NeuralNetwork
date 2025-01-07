@@ -41,11 +41,13 @@ class Layer:
         # Calculate the error terms for the error derivative (For 1 node in each layer)
         # err(i) = dC/dZ(i) = dA(i)/dZ(i) * dZ(i + 1)/dA(i) * err(i + 1)
         for i in range(self.neuron_size):
-            #Calculate dZ(i + 1)/dA(i)
+            # Calculate dZ(i + 1)/dA(i)
             res = sum([prev.error[j] * prev.weights[j][i] for j in range(prev.neuron_size)])
 
-            #Multiply dA(i)/dZ(i) due to chain rule
+            # Multiply dA(i)/dZ(i) due to chain rule
             res *= derivative(self.values[i])
+
+            # Adds all possible errors for every input in sample so we can average them layer 
             self.error[i] += res
 
         return self.error
@@ -56,6 +58,7 @@ class Layer:
         # Applies gradient on the weights
         # dC/dW(i) = dZ(i)/dW(i) * dC/dZ(i)
         # The error is dC/dZ(i)
+        # Divide by size because currently self.error[i] contains all errors for all inputs in batch, so we want to average them
         for i in range(self.neuron_size):
             for j in range(self.weight_size):
                 self.weights[i][j] -= eta * ((activate(prev[j]) * self.error[i]) / size)
@@ -102,14 +105,19 @@ class NeuralNetwork:
     def learn(self, dataset, iterations, eta, batch_size = -1):
         temp = list(dataset)
         for i in range(iterations):
+            print(f"Iteration {i + 1}")
             # Randomly shuffles the dataset and partitions it into mini batches
             random.shuffle(temp)
             batches = [temp[j : j + batch_size] for j in range(0, len(temp), batch_size)]
 
             #Go through each mini-batch and train the neural network using each sample
-            for batch in batches:
+            for batch in batches:    
                 for data in batch:
                     input, expected = data
+
+                    if len(input) != self.layer_size[0]:
+                        return
+                
                     self.backpropagation(input, expected, eta)
                     
                 self.apply_gradient(input, eta, len(batch))
