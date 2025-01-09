@@ -1,6 +1,9 @@
 from collections import deque
+import concurrent.futures
 import json
 import random
+
+import concurrent
 import activation as act
 import numpy as np
 
@@ -21,7 +24,6 @@ class Layer:
         # Then calculate the dot product between the weights and activation + bias 
         # Matrix vector multiplication essentially
         out = [np.dot(a, w) + b for w, b in zip(self.weights, self.biases)]    
-        self.activ = list(out)
         return out
     
     def output_backpropagation(self, actual, expected):
@@ -107,6 +109,7 @@ class Layer:
 class NeuralNetwork:
     def __init__(self, layer_size, activation = act.Sigmoid(), path = ""):
         if len(path) > 0:
+            print("what")
             self.load_data(path)
             return
         
@@ -128,28 +131,37 @@ class NeuralNetwork:
 
         return (a, activations)
     
-    def learn(self, dataset, epoch, eta, batch_size = -1):
+    def learn(self, dataset, epoch, eta, batch_size = 1, multithreading = False):
         temp = list(dataset)
         for i in range(epoch):
-            # print(f"Iteration {i + 1}")
+            # print(f"Iteration {i + 1}\n")
             # Randomly shuffles the dataset and partitions it into mini batches
             random.shuffle(temp)
             batches = [temp[j : j + batch_size] for j in range(0, len(temp), batch_size)]
                 
             #Go through each mini-batch and train the neural network using each sample
-            for batch in batches:    
-                for data in batch:
-                    input, expected = data
+            for i, batch in enumerate(batches):    
+                # print(f"Batch {i + 1}")
+                if not multithreading:
+                    for data in batch:
+                        input, expected = data
 
-                    if len(input) != self.layer_size[0]:
-                        return
+                        if len(input) != self.layer_size[0]:
+                            return
+                    
+                        self.backpropagation(input, expected)
                 
-                    self.backpropagation(input, expected, eta)
-                
+                else:
+                    pool = concurrent.futures.ThreadPoolExecutor(max_workers=batch_size)
+                    for data in batch:
+                        input, expected = data
+                        pool.submit(self.backpropagation, input, expected)
+                    
+                    pool.shutdown(wait=True)
                 self.apply_gradient(input, eta, len(batch))
     
     # Trains the neural network using gradient descent
-    def backpropagation(self, a, expected, eta = 0.5):
+    def backpropagation(self, a, expected):
         # Feed forward algorithm to generate output values so we can evaluate the cost 
         actual, activations = self.feed_forward(a)
 
@@ -160,9 +172,9 @@ class NeuralNetwork:
 
         for i in range(len(self.layers) - 2, -1, -1):
             curr, prev = self.layers[i], self.layers[i + 1]
-            error = list(curr.backpropagation(error, prev, activations[i]))
+            error = curr.backpropagation(errors[i + 1], prev, activations[i])
             errors[i] = error
-
+        
         #Update gradient vector for biases and weights
         self.layers[0].update_gradient(a, errors[0])
         for i in range(1, len(self.layers)):
@@ -172,7 +184,7 @@ class NeuralNetwork:
     def apply_gradient(self, a, eta, size):
         # Apply the gradient for each layer using the error of the previous layer
         for i in range(len(self.layers)):
-            self.layers[0].apply_gradient(eta, size)
+            self.layers[i].apply_gradient(eta, size)
 
     def save_data(self):
         data = dict()

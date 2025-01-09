@@ -8,24 +8,34 @@ import activation as act
 import network as nw
 
 dataset = [
-    ([0.125, 0.521, 0.623], [0, 0, 0, 1]), 
-    ([0.923, 0.170, 0.345], [0, 0, 1, 0]),
-    ([0.012, 0.290, 0.854], [0, 1, 0, 0]),
-    ([0.444, 0.754, 0.143], [1, 0, 0, 0])
+    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]),
+    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]),
+    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], [0, 0, 0, 1, 0, 0, 0, 0, 0, 0]),
+    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], [0, 0, 0, 0, 1, 0, 0, 0, 0, 0]),
+    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], [0, 0, 0, 0, 0, 1, 0, 0, 0, 0]),
+    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], [0, 0, 0, 0, 0, 0, 1, 0, 0, 0]),
+    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], [0, 0, 0, 0, 0, 0, 0, 1, 0, 0]),
+    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], [0, 0, 0, 0, 0, 0, 0, 0, 1, 0]), 
+    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]),
 ]
 
 def print_output(network, data):
         for data in dataset:
             for val in list(map(float, network.feed_forward(data[0])[0])):
-                print(f"{val:.5f}", end = ", ")
+                print(f"{val:.2f}", end = ", ")
             print()
     
 def train():
     global dataset 
-    network = nw.NeuralNetwork([3, 5, 9, 4], act.Sigmoid())
+    network = nw.NeuralNetwork([3, 10, 10, 10], act.Sigmoid())
+
+    save_data = network.save_data()
+    with open("before.json", "w") as file:
+        json.dump(save_data, file, indent = 3)
 
     print_output(network, dataset)
-    network.learn(dataset, 10000, 5.0, 1)
+    network.learn(dataset, 10000, 0.5, 5, multithreading = False)
     print()
     print_output(network, dataset)
 

@@ -24,12 +24,12 @@ def read_digits(path):
 
     return dataset
 
-train_data = read_digits("programs\digitrecognition\mnist_train.csv")
-test_data = read_digits("programs\digitrecognition\mnist_test.csv")
+train_data = read_digits("C:/Users/RedAP/Desktop/mnist_train.csv")
+test_data = read_digits("C:/Users/RedAP/Desktop/mnist_test.csv")
 
 def train_network():
     network = nw.NeuralNetwork([ROW * COL, 30, 10])
-    network.learn(train_data, 1, 0.5, 1)
+    network.learn(train_data, 1, 0.5, 100, multithreading=True)
 
     save_data = network.save_data()
     with open("network.json", "w") as file:
