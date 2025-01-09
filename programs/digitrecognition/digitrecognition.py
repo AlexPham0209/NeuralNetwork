@@ -28,12 +28,14 @@ train_data = read_digits("programs\digitrecognition\mnist_train.csv")
 test_data = read_digits("programs\digitrecognition\mnist_test.csv")
 
 def train_network():
-    network = nw.NeuralNetwork([ROW * COL, 30, 30, 10])
-    network.learn(train_data, 1, 0.5, 10)
+    network = nw.NeuralNetwork([ROW * COL, 30, 10])
+    network.learn(train_data, 1, 0.5, 1)
 
     save_data = network.save_data()
     with open("network.json", "w") as file:
         json.dump(save_data, file, indent = 3)
+    
+    test(network)
 
     
 def load_network():
@@ -44,7 +46,7 @@ def test(network):
     global test_data
     correct = 0
     wrong = 0
-
+    
     output = open("output.txt", "w")
     for data in test_data:
         input, expected = data
@@ -57,7 +59,7 @@ def test(network):
         
         actual = [int(i == max_index) for i in range(len(actual))]
         output.write(f"Actual: {actual}\n")
-        output.write(f"Expected: {expected}\n")
+        output.write(f"Expected: {expected}\n\n")
 
         if actual == expected:
             correct += 1 

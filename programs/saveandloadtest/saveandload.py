@@ -16,16 +16,16 @@ dataset = [
 
 def print_output(network, data):
         for data in dataset:
-            for val in list(map(float, network.feed_forward(data[0]))):
+            for val in list(map(float, network.feed_forward(data[0])[0])):
                 print(f"{val:.5f}", end = ", ")
             print()
     
 def train():
     global dataset 
-    network = nw.NeuralNetwork([3, 10, 10, 4], act.Sigmoid())
+    network = nw.NeuralNetwork([3, 5, 9, 4], act.Sigmoid())
 
     print_output(network, dataset)
-    network.learn(dataset, 10000, 0.75, 2)
+    network.learn(dataset, 10000, 5.0, 1)
     print()
     print_output(network, dataset)
 
@@ -39,12 +39,14 @@ def load():
     print_output(network, dataset)
 
 
-while True:
-    mode = input("Train or Load: ")
-    match mode.lower().strip():
-        case "train":
-            train()
-        case "load":
-            load()
-        case _:
-            break
+# while True:
+#     mode = input("Train or Load: ")
+#     match mode.lower().strip():
+#         case "train":
+#             train()
+#         case "load":
+#             load()
+#         case _:
+#             break
+
+train()
