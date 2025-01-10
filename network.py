@@ -1,5 +1,5 @@
 from collections import deque
-import concurrent.futures
+import multiprocessing
 import json
 import random
 
@@ -85,31 +85,30 @@ class Layer:
         # Divide by size because currently self.error[i] contains all errors for all inputs in batch, so we want to average them
         for i in range(self.neuron_size):
             for j in range(self.weight_size):
-                self.weights[i][j] -= eta * (self.weights_gradient[i][j])
+                self.weights[i][j] -= (eta / size) * (self.weights_gradient[i][j])
 
         # Applies gradient on the biases
         # dC/dB(i) = dZ(i)/dW(i) * dC/dB(i)
         # The error is dC/dZ(i)
         for i in range(self.neuron_size):
-            self.biases[i] -= eta * (self.biases_gradient[i])
-
+            self.biases[i] -= (eta / size) * (self.biases_gradient[i])
+        
         #Resets the error after applying gradient vector
         self.weights_gradient = [[0] * self.weight_size for i in range(self.neuron_size)]
         self.biases_gradient = [0] * self.neuron_size
 
     # Randomizes all weights from 0 to 1 
     def randomize_weights(self):
-        self.weights = [[random.uniform(0.0, 1.0) for j in range(self.weight_size)] for i in range(self.neuron_size)]
+        self.weights = [[random.uniform(-1.0, 1.0) for j in range(self.weight_size)] for i in range(self.neuron_size)]
 
     # Randomizes all biases from 0 to 1 
     def randomize_biases(self):
-        self.biases = [random.uniform(0.0, 1.0) for i in range(self.neuron_size)]
+        self.biases = [random.uniform(-1.0, 1.0) for i in range(self.neuron_size)]
 
 
 class NeuralNetwork:
     def __init__(self, layer_size, activation = act.Sigmoid(), path = ""):
         if len(path) > 0:
-            print("what")
             self.load_data(path)
             return
         
@@ -129,19 +128,22 @@ class NeuralNetwork:
             a = list(map(self.activation.activate, out))
             activations.append(out)
 
-        return (a, activations)
+        return a, activations
     
-    def learn(self, dataset, epoch, eta, batch_size = 1, multithreading = False):
+    def learn(self, dataset, epoch, eta, batch_size = 1, multithreading = False, debug = False):
         temp = list(dataset)
         for i in range(epoch):
-            # print(f"Iteration {i + 1}\n")
+            if debug:
+                print(f"Iteration {i + 1}\n")
             # Randomly shuffles the dataset and partitions it into mini batches
             random.shuffle(temp)
             batches = [temp[j : j + batch_size] for j in range(0, len(temp), batch_size)]
                 
             #Go through each mini-batch and train the neural network using each sample
             for i, batch in enumerate(batches):    
-                # print(f"Batch {i + 1}")
+                if debug:
+                    print(f"Batch {i + 1}")
+
                 if not multithreading:
                     for data in batch:
                         input, expected = data
@@ -150,14 +152,16 @@ class NeuralNetwork:
                             return
                     
                         self.backpropagation(input, expected)
-                
                 else:
-                    pool = concurrent.futures.ThreadPoolExecutor(max_workers=batch_size)
+                    pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
+
                     for data in batch:
                         input, expected = data
-                        pool.submit(self.backpropagation, input, expected)
+                        pool.apply_async(self.backpropagation, args=(input,expected))
+
+                    pool.close()
+                    pool.join()
                     
-                    pool.shutdown(wait=True)
                 self.apply_gradient(input, eta, len(batch))
     
     # Trains the neural network using gradient descent
@@ -186,6 +190,16 @@ class NeuralNetwork:
         for i in range(len(self.layers)):
             self.layers[i].apply_gradient(eta, size)
 
+    def evaluate(self, a):
+        output = self.feed_forward(a)[0]
+        
+        index = 0
+        for i in range(len(output)):
+            if output[i] >= output[index]:
+                index = i
+
+        return index, output
+        
     def save_data(self):
         data = dict()
 

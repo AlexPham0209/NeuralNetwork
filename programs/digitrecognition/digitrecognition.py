@@ -10,26 +10,28 @@ import network as nw
 ROW = 28
 COL = 28
 
-def read_digits(path):
+def read_digits(path, array = False):
     dataset = []
     with open(path) as file:
         for data in file.read().strip().split("\n"):
             data = list(map(int, data.split(",")))
-            expected = data[0]
             input = [val/255 for val in data[1:]]
 
-            expected = [0] * 10
-            expected[data[0]] = 1 
+            expected = data[0]
+            if array:
+                expected = [0] * 10
+                expected[data[0]] = 1 
+
             dataset.append((input, expected))
 
     return dataset
 
-train_data = read_digits("C:/Users/RedAP/Desktop/mnist_train.csv")
-test_data = read_digits("C:/Users/RedAP/Desktop/mnist_test.csv")
+train_data = read_digits("C:/Users/RedAP/Desktop/mnist_train.csv", True)
+test_data = read_digits("C:/Users/RedAP/Desktop/mnist_test.csv", False)
 
 def train_network():
-    network = nw.NeuralNetwork([ROW * COL, 30, 10])
-    network.learn(train_data, 1, 0.5, 100, multithreading=True)
+    network = nw.NeuralNetwork([ROW * COL, 50, 50, 10])
+    network.learn(train_data, 1, 0.5, 10, multithreading=False, debug=True)
 
     save_data = network.save_data()
     with open("network.json", "w") as file:
@@ -50,16 +52,11 @@ def test(network):
     output = open("output.txt", "w")
     for data in test_data:
         input, expected = data
-        actual = [val for val in list(map(float, network.feed_forward(input)))] 
-
-        max_index = 0 
-        for i in range(1, len(actual)):
-            if actual[i] >= actual[max_index]:
-                max_index = i
+        actual, test = network.evaluate(input)
         
-        actual = [int(i == max_index) for i in range(len(actual))]
         output.write(f"Actual: {actual}\n")
-        output.write(f"Expected: {expected}\n\n")
+        output.write(f"Expected: {expected}\n")
+        output.write(f"Array: {test}\n\n")
 
         if actual == expected:
             correct += 1 
@@ -71,8 +68,9 @@ def test(network):
     print(f"Percentage: {correct / (correct + wrong)}")
 
 
-match input("Pick Mode (Train or Load): ").lower():
-    case "train":
-        train_network()
-    case "load":
-        load_network()
+if __name__ == "__main__":
+    match input("Pick Mode (Train or Load): ").lower():
+        case "train":
+            train_network()
+        case "load":
+            load_network()
