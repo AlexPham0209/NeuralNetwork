@@ -12,7 +12,7 @@ class Layer:
         self.activation = activation
         self.neuron_size = neuron_size
         self.weight_size = weight_size
-
+        
         self.weights_gradient = [[0] * self.weight_size for i in range(self.neuron_size)]
         self.biases_gradient = [0] * self.neuron_size
         
@@ -39,7 +39,7 @@ class Layer:
             activation_derivative = derivative(actual[i])
             delta[i] = cost_derivative * activation_derivative
 
-        #Apply the error calculated for current input to the total error
+        # Apply the error calculated for current input to the total error
         return delta
 
     def backpropagation(self, error, prev, out):
@@ -82,7 +82,7 @@ class Layer:
         # Applies gradient on the weights
         # dC/dW(i) = dZ(i)/dW(i) * dC/dZ(i)
         # The error is dC/dZ(i)
-        # Divide by size because currently self.error[i] contains all errors for all inputs in batch, so we want to average them
+        # Averages the gradient component
         for i in range(self.neuron_size):
             for j in range(self.weight_size):
                 self.weights[i][j] -= (eta / size) * (self.weights_gradient[i][j])
@@ -139,11 +139,13 @@ class NeuralNetwork:
             random.shuffle(temp)
             batches = [temp[j : j + batch_size] for j in range(0, len(temp), batch_size)]
                 
-            #Go through each mini-batch and train the neural network using each sample
+            # Go through each mini-batch and train the neural network using each sample
             for i, batch in enumerate(batches):    
                 if debug:
                     print(f"Batch {i + 1}")
 
+                # Based on mulithreading parameter, it either processes each input in batch individually
+                # Or it processes all input in the data at the same time
                 if not multithreading:
                     for data in batch:
                         input, expected = data
@@ -161,7 +163,8 @@ class NeuralNetwork:
 
                     pool.close()
                     pool.join()
-                    
+
+                # Applies gradient vectors for weights and biases on the neural netowrk  
                 self.apply_gradient(input, eta, len(batch))
     
     # Trains the neural network using gradient descent
@@ -179,7 +182,7 @@ class NeuralNetwork:
             error = curr.backpropagation(errors[i + 1], prev, activations[i])
             errors[i] = error
         
-        #Update gradient vector for biases and weights
+        # Update gradient vector for biases and weights
         self.layers[0].update_gradient(a, errors[0])
         for i in range(1, len(self.layers)):
             self.layers[i].update_gradient(activations[i - 1], errors[i])
@@ -193,11 +196,13 @@ class NeuralNetwork:
     def evaluate(self, a):
         output = self.feed_forward(a)[0]
         
+        # Get the index of the component in the output vector that has the largest value
         index = 0
         for i in range(len(output)):
             if output[i] >= output[index]:
                 index = i
 
+        # Returns the max index and the values of the output layer
         return index, output
         
     def save_data(self):
