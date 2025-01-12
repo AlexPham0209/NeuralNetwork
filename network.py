@@ -94,8 +94,8 @@ class Layer:
             self.biases[i] -= (eta / size) * (self.biases_gradient[i])
         
         #Resets the error after applying gradient vector
-        self.weights_gradient = [[0] * self.weight_size for i in range(self.neuron_size)]
-        self.biases_gradient = [0] * self.neuron_size
+        self.weights_gradient = np.zeros((self.neuron_size, self.weight_size))
+        self.biases_gradient = np.zeros(self.neuron_size)
 
     # Randomizes all weights from 0 to 1 
     def randomize_weights(self):
@@ -130,8 +130,8 @@ class NeuralNetwork:
 
         return a, activations
     
-    def learn(self, dataset, epoch, eta, batch_size = 1, multithreading = False, debug = False):
-        temp = np.array(dataset)
+    def learn(self, dataset, epoch, eta, batch_size = 1, debug = False):
+        temp = list(dataset)
         for i in range(epoch):
             if debug:
                 print(f"Iteration {i + 1}\n")
@@ -144,25 +144,13 @@ class NeuralNetwork:
                 if debug:
                     print(f"Batch {i + 1}")
 
-                # Based on mulithreading parameter, it either processes each input in batch individually
-                # Or it processes all input in the data at the same time
-                if not multithreading:
-                    for data in batch:
-                        input, expected = data
+                for data in batch:
+                    input, expected = data
 
-                        if len(input) != self.layer_size[0]:
-                            return
+                    if len(input) != self.layer_size[0]:
+                        return
                     
-                        self.backpropagation(input, expected)
-                else:
-                    pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
-
-                    for data in batch:
-                        input, expected = data
-                        pool.apply_async(self.backpropagation, args=(input,expected))
-
-                    pool.close()
-                    pool.join()
+                    self.backpropagation(input, expected)
 
                 # Applies gradient vectors for weights and biases on the neural netowrk  
                 self.apply_gradient(input, eta, len(batch))
