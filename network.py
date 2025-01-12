@@ -34,7 +34,7 @@ class Layer:
         activate = self.activation.activate
         derivative = self.activation.derivative
         
-        #Calculate dC/dA for output
+        # Calculate dC/dA for output
         self.error = 2 * (activate(self.out) - prev) if self.is_output else prev
 
         if self.is_input:
@@ -45,7 +45,7 @@ class Layer:
     def update_gradient(self, prev):
         activate = self.activation.activate
         derivative = self.activation.derivative
-        
+
         p = activate(prev)
         o = derivative(self.out)
 
@@ -56,7 +56,7 @@ class Layer:
         self.weights -= (eta / size) * self.weights_gradient
         self.biases -= (eta / size) * self.biases_gradient
 
-        #Resets the error after applying gradient vector
+        # Resets the error after applying gradient vector
         self.weights_gradient = np.zeros((self.neuron_size, self.weight_size))
         self.biases_gradient = np.zeros(self.neuron_size)
 
@@ -90,8 +90,8 @@ class NeuralNetwork:
         activations = []
         for layer in self.layers:
             out = layer.feed_forward(a)
-            a = list(map(self.activation.activate, out))
-            activations.append(out)
+            a = self.activation.activate(out)
+            activations.append(out) 
 
         return a, activations
     
