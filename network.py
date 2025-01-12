@@ -13,8 +13,8 @@ class Layer:
         self.neuron_size = neuron_size
         self.weight_size = weight_size
         
-        self.weights_gradient = [[0] * self.weight_size for i in range(self.neuron_size)]
-        self.biases_gradient = [0] * self.neuron_size
+        self.weights_gradient = np.zeros((self.neuron_size, self.weight_size))
+        self.biases_gradient = np.zeros(self.neuron_size)
         
         self.randomize_weights()
         self.randomize_biases()
@@ -23,14 +23,14 @@ class Layer:
         # Zip the weights and biases like this -> [(w1, b1), (w2, b1), ...]
         # Then calculate the dot product between the weights and activation + bias 
         # Matrix vector multiplication essentially
-        out = [np.dot(a, w) + b for w, b in zip(self.weights, self.biases)]    
+        out = self.weights.dot(a) + self.biases 
         return out
     
     def output_backpropagation(self, actual, expected):
         activate = self.activation.activate
         derivative = self.activation.derivative
         
-        delta = [0] * self.neuron_size
+        delta = np.zeros(self.neuron_size)
 
         # Calculate error for output layer:
         # err = dC/dZ = dA/dZ * dC/dA
@@ -44,7 +44,7 @@ class Layer:
 
     def backpropagation(self, error, prev, out):
         derivative = self.activation.derivative
-        delta = [0] * self.neuron_size
+        delta = np.zeros(self.neuron_size)
 
         # Calculate the error terms for the error derivative (For 1 node in each layer)
         # err(i) = dC/dZ(i) = dA(i)/dZ(i) * dZ(i + 1)/dA(i) * err(i + 1)
@@ -99,11 +99,11 @@ class Layer:
 
     # Randomizes all weights from 0 to 1 
     def randomize_weights(self):
-        self.weights = [[random.uniform(-1.0, 1.0) for j in range(self.weight_size)] for i in range(self.neuron_size)]
+        self.weights = np.array([[random.uniform(-1.0, 1.0) for j in range(self.weight_size)] for i in range(self.neuron_size)])
 
     # Randomizes all biases from 0 to 1 
     def randomize_biases(self):
-        self.biases = [random.uniform(-1.0, 1.0) for i in range(self.neuron_size)]
+        self.biases = np.array([random.uniform(-1.0, 1.0) for i in range(self.neuron_size)])
 
 
 class NeuralNetwork:
@@ -114,7 +114,7 @@ class NeuralNetwork:
         
         self.layer_size = layer_size
         self.activation = activation
-        self.layers = [Layer(curr, prev, activation) for curr, prev in zip(layer_size[1:], layer_size)]
+        self.layers = np.array([Layer(curr, prev, activation) for curr, prev in zip(layer_size[1:], layer_size)])
 
     def feed_forward(self, a):
         # If size of the input vector does not match the amount of neurons in the input layer, return None
@@ -131,7 +131,7 @@ class NeuralNetwork:
         return a, activations
     
     def learn(self, dataset, epoch, eta, batch_size = 1, multithreading = False, debug = False):
-        temp = list(dataset)
+        temp = np.array(dataset)
         for i in range(epoch):
             if debug:
                 print(f"Iteration {i + 1}\n")
@@ -219,8 +219,8 @@ class NeuralNetwork:
             layer_data["type"] = "Dense"
             layer_data["weights_size"] = layer.weight_size
             layer_data["biases_size"] = layer.neuron_size
-            layer_data["weights"] = layer.weights
-            layer_data["biases"] = layer.biases
+            layer_data["weights"] = layer.weights.tolist()
+            layer_data["biases"] = layer.biases.tolist()
 
             data[i] = layer_data
 
@@ -244,8 +244,8 @@ class NeuralNetwork:
         for i in range(len(self.layer_size) - 1):
             layer_data = data[str(i)]
             layer = Layer(layer_data["biases_size"], layer_data["weights_size"], self.activation)
-            layer.weights = layer_data["weights"]
-            layer.biases = layer_data["biases"]
+            layer.weights = np.array(layer_data["weights"])
+            layer.biases = np.array(layer_data["biases"])
 
             self.layers.append(layer)
 
