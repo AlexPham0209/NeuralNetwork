@@ -31,11 +31,3 @@ class ReLU(Activation):
     def __repr__(self): 
         return "ReLU"
     
-a = np.array([
-    [1, 2],
-    [3, 4]
-])
-
-b = np.array([4, 5])
-
-print((a.T * b).T)
