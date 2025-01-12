@@ -8,10 +8,13 @@ import activation as act
 import numpy as np
 
 class Layer:
-    def __init__(self, neuron_size, weight_size, activation):
+    def __init__(self, neuron_size, weight_size, activation, is_output = False):
         self.activation = activation
         self.neuron_size = neuron_size
         self.weight_size = weight_size
+        
+        #Check if current layer is output layer
+        self.is_output = is_output
         
         self.weights_gradient = np.zeros((self.neuron_size, self.weight_size))
         self.biases_gradient = np.zeros(self.neuron_size)
@@ -26,36 +29,15 @@ class Layer:
         self.out = self.weights.dot(a) + self.biases 
         return self.out
     
-    def output_backpropagation(self, prev):
+    def backpropagation(self, prev):
         activate = self.activation.activate
         derivative = self.activation.derivative
         
         #Calculate dC/dA for output
-        self.error = np.array([2 * (activate(a) - e) for a, e in zip(self.out, prev)])
+        self.error = np.array([2 * (activate(a) - e) for a, e in zip(self.out, prev)]) if self.is_output else prev
 
         #Calculate dC/dA(i - 1)
-        delta = np.zeros(self.weight_size)
-        for i in range(self.weight_size):
-            res = 0
-            for j in range(self.neuron_size):
-                res += self.weights[j][i] * derivative(self.out[j]) * self.error[j]
-
-            delta[i] = res
-
-        return delta
-
-    def backpropagation(self, prev):
-        derivative = self.activation.derivative
-        self.error = prev
-
-        delta = np.zeros(self.weight_size)
-        for i in range(self.weight_size):
-            res = 0
-            for j in range(self.neuron_size):
-                res += self.weights[j][i] * derivative(self.out[j]) * self.error[j]
-
-            delta[i] = res
-
+        delta = np.array([sum([self.weights[j][i] * derivative(self.out[j]) * self.error[j] for j in range(self.neuron_size)]) for i in range(self.weight_size)])
         return delta
 
     def update_gradient(self, prev):
@@ -114,6 +96,7 @@ class NeuralNetwork:
         self.layer_size = layer_size
         self.activation = activation
         self.layers = np.array([Layer(curr, prev, activation) for curr, prev in zip(layer_size[1:], layer_size)])
+        self.layers[-1].is_output = True
 
     def feed_forward(self, a):
         # If size of the input vector does not match the amount of neurons in the input layer, return None
@@ -160,8 +143,8 @@ class NeuralNetwork:
         actual, activations = self.feed_forward(a)
 
         # Apply backpropagation algorithm to generate error for each layer
-        error = self.layers[-1].output_backpropagation(expected)
-        for i in range(len(self.layers) - 2, -1, -1):
+        error = expected
+        for i in range(len(self.layers) - 1, -1, -1):
             curr = self.layers[i]
             error = curr.backpropagation(error)
         
@@ -226,4 +209,6 @@ class NeuralNetwork:
             layer.biases = np.array(layer_data["biases"])
 
             self.layers.append(layer)
+
+        self.layers[-1].is_output = True
 
