@@ -2,17 +2,26 @@ import numpy as np
 
 
 class Layer:
-    def __init__(self):
-        pass
+    def __init__(self, activation):
+        self.activation = activation
+        self.error = np.zeros(self.neuron_size)
+        self.out = np.zeros(self.neuron_size)
 
     def feed_forward(self, a):
-        return a
+        pass
     
-    def output_backpropagation(self, actual, expected):
-        return None
+    def output_backpropagation(self, expected):
+        pass
     
-    def backpropagation():
-        return 0
+    def backpropagation(self, prev):
+        pass
+    
+    def update_gradient(self, prev):
+        pass
+
+    def apply_gradient(self, eta, size):
+        pass
+
     
 class Conv2D(Layer):
     def __init__(self, kernel):
@@ -36,7 +45,7 @@ class Conv2D(Layer):
             
         return out
 
-class Pooling:
+class Pooling(Layer):
     def __init__(self, kernel_size, stride):
         self.kernel_size = kernel_size
         self.stride = stride

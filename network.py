@@ -23,57 +23,57 @@ class Layer:
         # Zip the weights and biases like this -> [(w1, b1), (w2, b1), ...]
         # Then calculate the dot product between the weights and activation + bias 
         # Matrix vector multiplication essentially
-        out = self.weights.dot(a) + self.biases 
-        return out
+        self.out = self.weights.dot(a) + self.biases 
+        return self.out
     
-    def output_backpropagation(self, actual, expected):
+    def output_backpropagation(self, expected):
         activate = self.activation.activate
         derivative = self.activation.derivative
         
-        delta = np.zeros(self.neuron_size)
+        self.error = np.zeros(self.neuron_size)
 
         # Calculate error for output layer:
         # err = dC/dZ = dA/dZ * dC/dA
         for i in range(self.neuron_size):
-            cost_derivative = 2 * (activate(actual[i]) - expected[i])
-            activation_derivative = derivative(actual[i])
-            delta[i] = cost_derivative * activation_derivative
+            cost_derivative = 2 * (activate(self.out[i]) - expected[i])
+            activation_derivative = derivative(self.out[i])
+            self.error[i] = cost_derivative * activation_derivative
 
         # Apply the error calculated for current input to the total error
-        return delta
+        return self.error
 
-    def backpropagation(self, error, prev, out):
+    def backpropagation(self, prev):
         derivative = self.activation.derivative
-        delta = np.zeros(self.neuron_size)
+        self.error = np.zeros(self.neuron_size)
 
         # Calculate the error terms for the error derivative (For 1 node in each layer)
         # err(i) = dC/dZ(i) = dA(i)/dZ(i) * dZ(i + 1)/dA(i) * err(i + 1)
         for i in range(self.neuron_size):
             # Calculate dZ(i + 1)/dA(i)
-            res = sum([error[j] * prev.weights[j][i] for j in range(prev.neuron_size)])
+            res = sum([prev.error[j] * prev.weights[j][i] for j in range(prev.neuron_size)])
 
             # Multiply dA(i)/dZ(i) due to chain rule
-            res *= derivative(out[i])
+            res *= derivative(self.out[i])
 
             # Adds all possible errors for every input in sample so we can average them layer 
-            delta[i] = res
+            self.error[i] = res
 
-        return delta
+        return self.error
 
-    def update_gradient(self, prev, error):
+    def update_gradient(self, prev):
         activate = self.activation.activate
         # Applies gradient on the weights
         # dC/dW(i) = dZ(i)/dW(i) * dC/dZ(i)
         # The error is dC/dZ(i)
         for i in range(self.neuron_size):
             for j in range(self.weight_size):
-                self.weights_gradient[i][j] += (activate(prev[j]) * error[i])
+                self.weights_gradient[i][j] += (activate(prev[j]) * self.error[i])
 
         # Applies gradient on the biases
         # dC/dB(i) = dZ(i)/dW(i) * dC/dB(i)
         # The error is dC/dZ(i)
         for i in range(self.neuron_size):
-            self.biases_gradient[i] += error[i]
+            self.biases_gradient[i] += self.error[i]
 
 
     def apply_gradient(self, eta, size = 1):
@@ -100,7 +100,7 @@ class Layer:
     # Randomizes all weights from 0 to 1 
     def randomize_weights(self):
         self.weights = np.array([[random.uniform(-1.0, 1.0) for j in range(self.weight_size)] for i in range(self.neuron_size)])
-
+        
     # Randomizes all biases from 0 to 1 
     def randomize_biases(self):
         self.biases = np.array([random.uniform(-1.0, 1.0) for i in range(self.neuron_size)])
@@ -161,19 +161,16 @@ class NeuralNetwork:
         actual, activations = self.feed_forward(a)
 
         # Apply backpropagation algorithm to generate error for each layer
-        error = self.layers[-1].output_backpropagation(activations[-1], expected)
-        errors = [0] * len(self.layers)
-        errors[-1] = error
-
+        self.layers[-1].output_backpropagation(expected)
         for i in range(len(self.layers) - 2, -1, -1):
             curr, prev = self.layers[i], self.layers[i + 1]
-            error = curr.backpropagation(errors[i + 1], prev, activations[i])
-            errors[i] = error
+            curr.backpropagation(prev)
         
         # Update gradient vector for biases and weights
-        self.layers[0].update_gradient(a, errors[0])
+        self.layers[0].update_gradient(a)
         for i in range(1, len(self.layers)):
-            self.layers[i].update_gradient(activations[i - 1], errors[i])
+            curr, prev = self.layers[i], self.layers[i - 1]
+            curr.update_gradient(prev.out)
 
         
     def apply_gradient(self, a, eta, size):
@@ -184,14 +181,8 @@ class NeuralNetwork:
     def evaluate(self, a):
         output = self.feed_forward(a)[0]
         
-        # Get the index of the component in the output vector that has the largest value
-        index = 0
-        for i in range(len(output)):
-            if output[i] >= output[index]:
-                index = i
-
         # Returns the max index and the values of the output layer
-        return index, output
+        return np.argmax(output), output
         
     def save_data(self):
         data = dict()
