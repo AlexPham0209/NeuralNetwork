@@ -33,7 +33,7 @@ def train():
     network = nw.NeuralNetwork([3, 10, 10, 10], act.Sigmoid())
 
     print_output(network, dataset)
-    network.learn(dataset, 10000, 0.5, 10)
+    network.learn(dataset, 5000, 0.5, 10)
     print()
     print_output(network, dataset)
 
