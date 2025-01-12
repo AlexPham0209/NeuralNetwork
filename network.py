@@ -8,13 +8,14 @@ import activation as act
 import numpy as np
 
 class Layer:
-    def __init__(self, neuron_size, weight_size, activation, is_output = False):
+    def __init__(self, neuron_size, weight_size, activation, is_output = False, is_input = False):
         self.activation = activation
         self.neuron_size = neuron_size
         self.weight_size = weight_size
         
         #Check if current layer is output layer
         self.is_output = is_output
+        self.is_input = is_input
         
         self.weights_gradient = np.zeros((self.neuron_size, self.weight_size))
         self.biases_gradient = np.zeros(self.neuron_size)
@@ -34,46 +35,27 @@ class Layer:
         derivative = self.activation.derivative
         
         #Calculate dC/dA for output
-        self.error = np.array([2 * (activate(a) - e) for a, e in zip(self.out, prev)]) if self.is_output else prev
+        self.error = 2 * (activate(self.out) - prev) if self.is_output else prev
 
-        #Calculate dC/dA(i - 1)
-        delta = np.array([sum([self.weights[j][i] * derivative(self.out[j]) * self.error[j] for j in range(self.neuron_size)]) for i in range(self.weight_size)])
-        return delta
+        if self.is_input:
+            return None
+        
+        return self.weights.T.dot(derivative(self.out) * self.error)
 
     def update_gradient(self, prev):
         activate = self.activation.activate
         derivative = self.activation.derivative
-        # Applies gradient on the weights
-        # dC/dW(i) = dZ(i)/dW(i) * dC/dZ(i)
-        # The error is dC/dZ(i)
-        for i in range(self.neuron_size):
-            for j in range(self.weight_size):
-                self.weights_gradient[i][j] += (activate(prev[j]) * derivative(self.out[i]) * self.error[i])
+        
+        p = activate(prev)
+        o = derivative(self.out)
 
-        # Applies gradient on the biases
-        # dC/dB(i) = dZ(i)/dW(i) * dC/dB(i)
-        # The error is dC/dZ(i)
-        for i in range(self.neuron_size):
-            self.biases_gradient[i] += derivative(self.out[i]) * self.error[i]
-
+        self.weights_gradient += (np.tile((self.error * o), (self.weight_size,1)).T) * p
+        self.biases_gradient += o * self.error
 
     def apply_gradient(self, eta, size = 1):
-        activate = self.activation.activate
+        self.weights -= (eta / size) * self.weights_gradient
+        self.biases -= (eta / size) * self.biases_gradient
 
-        # Applies gradient on the weights
-        # dC/dW(i) = dZ(i)/dW(i) * dC/dZ(i)
-        # The error is dC/dZ(i)
-        # Averages the gradient component
-        for i in range(self.neuron_size):
-            for j in range(self.weight_size):
-                self.weights[i][j] -= (eta / size) * (self.weights_gradient[i][j])
-
-        # Applies gradient on the biases
-        # dC/dB(i) = dZ(i)/dW(i) * dC/dB(i)
-        # The error is dC/dZ(i)
-        for i in range(self.neuron_size):
-            self.biases[i] -= (eta / size) * (self.biases_gradient[i])
-        
         #Resets the error after applying gradient vector
         self.weights_gradient = np.zeros((self.neuron_size, self.weight_size))
         self.biases_gradient = np.zeros(self.neuron_size)
@@ -97,6 +79,7 @@ class NeuralNetwork:
         self.activation = activation
         self.layers = np.array([Layer(curr, prev, activation) for curr, prev in zip(layer_size[1:], layer_size)])
         self.layers[-1].is_output = True
+        self.layers[0].is_input = True
 
     def feed_forward(self, a):
         # If size of the input vector does not match the amount of neurons in the input layer, return None
@@ -211,4 +194,5 @@ class NeuralNetwork:
             self.layers.append(layer)
 
         self.layers[-1].is_output = True
+        self.layers[0].is_input = True
 

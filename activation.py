@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.special import expit
 
 class Activation:
     def activate(self, x):
@@ -12,7 +13,7 @@ class Activation:
 
 class Sigmoid(Activation):
     def activate(self, x):
-        return 1 / (1 + np.e ** (-x))
+        return expit(x)
 
     def derivative(self, x):
         return self.activate(x) * (1 - self.activate(x))
@@ -22,10 +23,19 @@ class Sigmoid(Activation):
 
 class ReLU(Activation):
     def activate(self, x):
-        return max(0, x)
+        return x * (x > 0)
     
     def derivative(self, x):
-        return 0 if x <= 0 else 1
+        return 1. * (x > 0)
     
     def __repr__(self): 
         return "ReLU"
+    
+a = np.array([
+    [1, 2],
+    [3, 4]
+])
+
+b = np.array([4, 5])
+
+print((a.T * b).T)

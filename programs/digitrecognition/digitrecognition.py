@@ -30,11 +30,11 @@ train_data = read_digits("C:/Users/RedAP/Desktop/mnist_train.csv", True)
 test_data = read_digits("C:/Users/RedAP/Desktop/mnist_test.csv", False)
 
 def train_network():
-    network = nw.NeuralNetwork([ROW * COL, 50, 50, 10])
-    network.learn(train_data, 1, 0.5, 10, debug=True)
+    network = nw.NeuralNetwork([ROW * COL, 50, 50, 10], path = "network.json")
+    network.learn(train_data, 5, 0.5, 10, debug=True)
 
     save_data = network.save_data()
-    with open("network2.json", "w") as file:
+    with open("network.json", "w") as file:
         json.dump(save_data, file, indent = 3)
     
     test(network)
@@ -73,3 +73,4 @@ if __name__ == "__main__":
             train_network()
         case "load":
             load_network()
+

@@ -1,5 +1,7 @@
 import numpy as np
 
+import activation
+
 
 class Layer:
     def __init__(self, activation):
@@ -86,10 +88,10 @@ kernel = [
     [0, 0, 1]
 ]
 
-conv = Conv2D(kernel)
-out = conv.feed_forward(arr)
-print(out)
+# conv = Conv2D(kernel)
+# out = conv.feed_forward(arr)
+# print(out)
 
-pool = Pooling((2, 2), 1)
-print(pool.feed_forward(out))
+# pool = Pooling((2, 2), 1)
+# print(pool.feed_forward(out))
 
