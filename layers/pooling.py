@@ -1,21 +1,15 @@
 import numpy as np
+from skimage.measure import block_reduce
 from layers.layer import Layer
 
 
 class Pooling(Layer):
-    def __init__(self, kernel_size, stride):
+    def __init__(self, output_size, kernel_size, activation):
+        super.__init__(output_size, activation)
         self.kernel_size = kernel_size
-        self.stride = stride
 
     def feed_forward(self, a):
-        a = np.array(a)
-        height, width = np.shape(a)
-        q_y, q_x = self.kernel_size
-        out = np.zeros((height // q_y, width // q_x))
+        self.out = block_reduce(a, self.kernel_size, np.max)
+        return self.activation.activate(self.out)
 
-        for i in range(0, height, q_y):
-            for j in range(0, width, q_x):
-                window = a[i : i + q_y, j : j + q_x]
-                out[i//q_y][j//q_x] = window.max()
-
-        return out
+    

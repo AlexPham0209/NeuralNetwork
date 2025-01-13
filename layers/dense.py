@@ -11,7 +11,7 @@ class Dense(Layer):
 
     def feed_forward(self, a):
         self.out = self.weights.dot(a) + self.biases 
-        return self.out
+        return self.activation.activate(self.out)
     
     def backpropagation(self, prev):
         activate = self.activation.activate

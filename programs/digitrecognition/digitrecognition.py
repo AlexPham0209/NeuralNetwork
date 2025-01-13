@@ -7,7 +7,7 @@ import random
 import numpy as np
 import activation as act
 import network as nw
-import layers.dense as Dense
+from layers.dense import Dense
 
 ROW = 28
 COL = 28
@@ -37,15 +37,18 @@ def train_network():
     ]
 
     network = nw.Model(architecture, input_size = ROW * COL)
-    network.learn(train_data, 5, 0.5, 10, debug=True)
+    network.learn(train_data, 20, 0.5, 25, debug=True)
     test(network)
-    
+
 
 def load_network():
-    network = nw.NeuralNetwork([Dense(ROW * COL), 
-                                Dense(64), 
-                                Dense(64), 
-                                Dense(10)])
+    architecture = [
+        Dense(64, act.Sigmoid()), 
+        Dense(64, act.Sigmoid()), 
+        Dense(10, act.Sigmoid())
+    ]
+
+    network = nw.Model(architecture, input_size = ROW * COL)
     test(network)
 
 def test(network):

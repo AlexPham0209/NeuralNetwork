@@ -24,9 +24,8 @@ class Model:
         # Go through each layer and feed forward
         activations = []
         for layer in self.layers:
-            out = layer.feed_forward(a)
-            a = layer.activation.activate(out)
-            activations.append(out) 
+            a = layer.feed_forward(a)
+            activations.append(a) 
 
         return a, activations
     
