@@ -1,5 +1,5 @@
 import src.activation as act
-import src.layers.layer as Layer
+from src.layers.layer import Layer
 import numpy as np
 
 import json
