@@ -1,18 +1,23 @@
+from enum import Enum
+import random
 import numpy as np
+import activation as act
 
-import activation
-
+class LayerType(Enum):
+    INPUT = 1
+    HIDDEN = 1
+    OUTPUT = 1 
 
 class Layer:
-    def __init__(self, activation):
+    def __init__(self, output_size, activation = act.Sigmoid()):
         self.activation = activation
-        self.error = np.zeros(self.neuron_size)
-        self.out = np.zeros(self.neuron_size)
+        self.output_size = output_size
+        
+        #Before and after layers
+        self.prev_layer = None
+        self.next_layer = None
 
     def feed_forward(self, a):
-        pass
-    
-    def output_backpropagation(self, expected):
         pass
     
     def backpropagation(self, prev):
@@ -21,10 +26,76 @@ class Layer:
     def update_gradient(self, prev):
         pass
 
-    def apply_gradient(self, eta, size):
+    def apply_gradient(self, eta, size = 1):
         pass
-
     
+    @property
+    def input_size(self):
+        return self._input_size
+
+    @input_size.setter
+    def input_size(self, value):
+        self._input_size = value
+
+class Dense(Layer):
+    def __init__(self, output_size, activation):
+        super().__init__(output_size, activation)
+
+        self.error = np.zeros(self.output_size)
+        self.out = np.zeros(self.output_size)
+
+    def feed_forward(self, a):
+        self.out = self.weights.dot(a) + self.biases 
+        return self.out
+    
+    def backpropagation(self, prev):
+        activate = self.activation.activate
+        derivative = self.activation.derivative
+        
+        # Calculate dC/dA for output
+        self.error = 2 * (activate(self.out) - prev) if not self.next_layer else prev
+
+        if not self.prev_layer:
+            return None
+        
+        return self.weights.T.dot(derivative(self.out) * self.error)
+
+    def update_gradient(self, prev):
+        activate = self.activation.activate
+        derivative = self.activation.derivative
+
+        p = activate(prev)
+        o = derivative(self.out)
+
+        self.weights_gradient += np.tile((self.error * o), (self.input_size,1)).T * p
+        self.biases_gradient += o * self.error
+
+    def apply_gradient(self, eta, size = 1):
+        self.weights -= (eta / size) * self.weights_gradient
+        self.biases -= (eta / size) * self.biases_gradient
+        
+        # Resets the error after applying gradient vector
+        self.weights_gradient = np.zeros((self.output_size, self.input_size))
+        self.biases_gradient = np.zeros(self.output_size)
+
+    # Randomizes all weights from 0 to 1 
+    def randomize_weights(self):
+        self.weights = np.array([[random.uniform(-1.0, 1.0) for j in range(self.input_size)] for i in range(self.output_size)])
+        
+    # Randomizes all biases from 0 to 1 
+    def randomize_biases(self):
+        self.biases = np.array([random.uniform(-1.0, 1.0) for i in range(self.output_size)])
+
+    @Layer.input_size.setter
+    def input_size(self, value):
+        self._input_size = value
+
+        self.randomize_weights()
+        self.randomize_biases()
+
+        self.weights_gradient = np.zeros((self.output_size, self.input_size))
+        self.biases_gradient = np.zeros(self.output_size)
+
 class Conv2D(Layer):
     def __init__(self, kernel):
         self.kernel = np.array(kernel)
@@ -68,30 +139,3 @@ class Pooling(Layer):
 class Flatten:
     def __init__(self):
         pass
-
-class Dense:
-    def __init__(self):
-        pass
-
-arr = [
-    [1, 1, 1, 0, 0, 1],
-    [0, 1, 1, 0, 1, 1],
-    [0, 0, 1, 0, 0, 1],
-    [0, 0, 1, 1, 1, 0],
-    [1, 0, 1, 1, 1, 1],
-    [0, 0, 1, 0, 1, 1]
-]
-
-kernel = [
-    [1, 1, 1],
-    [0, 1, 1],
-    [0, 0, 1]
-]
-
-# conv = Conv2D(kernel)
-# out = conv.feed_forward(arr)
-# print(out)
-
-# pool = Pooling((2, 2), 1)
-# print(pool.feed_forward(out))
-

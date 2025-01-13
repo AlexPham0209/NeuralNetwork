@@ -1,4 +1,5 @@
 import sys
+
 sys.path.insert(1, '../NeuralNetwork')
 
 import json
@@ -6,6 +7,7 @@ import random
 import numpy as np
 import activation as act
 import network as nw
+from layer import Dense
 
 ROW = 28
 COL = 28
@@ -28,17 +30,27 @@ def read_digits(path, array = False):
 
 def train_network():
     train_data = read_digits("C:/Users/RedAP/Desktop/mnist_train.csv", True)
-    network = nw.NeuralNetwork([ROW * COL, 64, 64, 10])
-    network.learn(train_data, 10, 0.5, 10, debug=True)
+    architecture = [
+        Dense(64, act.Sigmoid()), 
+        Dense(64, act.Sigmoid()), 
+        Dense(10, act.Sigmoid())
+    ]
 
-    save_data = network.save_data()
-    with open("programs/digitrecognition/output/network.json", "w") as file:
-        json.dump(save_data, file, indent = 3)
+    network = nw.Model(architecture, input_size = ROW * COL)
+
+    network.learn(train_data, 5, 0.5, 10, debug=True)
+
+    # save_data = network.save_data()
+    # with open("programs/digitrecognition/output/network.json", "w") as file:
+    #     json.dump(save_data, file, indent = 3)
     
     test(network)
 
 def load_network():
-    network = nw.NeuralNetwork([ROW * COL, 64, 64, 10], path = "programs/digitrecognition/output/network.json")
+    network = nw.NeuralNetwork([Dense(ROW * COL), 
+                                Dense(64), 
+                                Dense(64), 
+                                Dense(10)])
     test(network)
 
 def test(network):

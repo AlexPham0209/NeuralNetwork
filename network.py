@@ -7,90 +7,26 @@ import concurrent
 import activation as act
 import numpy as np
 
-class Layer:
-    def __init__(self, neuron_size, weight_size, activation, is_output = False, is_input = False):
-        self.activation = activation
-        self.neuron_size = neuron_size
-        self.weight_size = weight_size
-        
-        #Check if current layer is output layer
-        self.is_output = is_output
-        self.is_input = is_input
-        
-        self.weights_gradient = np.zeros((self.neuron_size, self.weight_size))
-        self.biases_gradient = np.zeros(self.neuron_size)
-        
-        self.randomize_weights()
-        self.randomize_biases()
-
-    def feed_forward(self, a):
-        # Zip the weights and biases like this -> [(w1, b1), (w2, b1), ...]
-        # Then calculate the dot product between the weights and activation + bias 
-        # Matrix vector multiplication essentially
-        self.out = self.weights.dot(a) + self.biases 
-        return self.out
-    
-    def backpropagation(self, prev):
-        activate = self.activation.activate
-        derivative = self.activation.derivative
-        
-        # Calculate dC/dA for output
-        self.error = 2 * (activate(self.out) - prev) if self.is_output else prev
-
-        if self.is_input:
-            return None
-        
-        return self.weights.T.dot(derivative(self.out) * self.error)
-
-    def update_gradient(self, prev):
-        activate = self.activation.activate
-        derivative = self.activation.derivative
-
-        p = activate(prev)
-        o = derivative(self.out)
-
-        self.weights_gradient += (np.tile((self.error * o), (self.weight_size,1)).T) * p
-        self.biases_gradient += o * self.error
-
-    def apply_gradient(self, eta, size = 1):
-        self.weights -= (eta / size) * self.weights_gradient
-        self.biases -= (eta / size) * self.biases_gradient
-
-        # Resets the error after applying gradient vector
-        self.weights_gradient = np.zeros((self.neuron_size, self.weight_size))
-        self.biases_gradient = np.zeros(self.neuron_size)
-
-    # Randomizes all weights from 0 to 1 
-    def randomize_weights(self):
-        self.weights = np.array([[random.uniform(-1.0, 1.0) for j in range(self.weight_size)] for i in range(self.neuron_size)])
-        
-    # Randomizes all biases from 0 to 1 
-    def randomize_biases(self):
-        self.biases = np.array([random.uniform(-1.0, 1.0) for i in range(self.neuron_size)])
+from layer import Layer
 
 
-class NeuralNetwork:
-    def __init__(self, layer_size, activation = act.Sigmoid(), path = ""):
+class Model:
+    def __init__(self, layers, input_size, path = ""):
         if len(path) > 0:
             self.load_data(path)
             return
         
-        self.layer_size = layer_size
-        self.activation = activation
-        self.layers = np.array([Layer(curr, prev, activation) for curr, prev in zip(layer_size[1:], layer_size)])
-        self.layers[-1].is_output = True
-        self.layers[0].is_input = True
+        self.input_size = input_size
+        self.layers = []
+        self.add_layers(layers)
 
     def feed_forward(self, a):
         # If size of the input vector does not match the amount of neurons in the input layer, return None
-        if len(a) != self.layer_size[0]:
-            return None
-        
         # Go through each layer and feed forward
         activations = []
         for layer in self.layers:
             out = layer.feed_forward(a)
-            a = self.activation.activate(out)
+            a = layer.activation.activate(out)
             activations.append(out) 
 
         return a, activations
@@ -110,11 +46,7 @@ class NeuralNetwork:
                     print(f"Batch {i + 1}")
 
                 for data in batch:
-                    input, expected = data
-
-                    if len(input) != self.layer_size[0]:
-                        return
-                    
+                    input, expected = data                    
                     self.backpropagation(input, expected)
 
                 # Applies gradient vectors for weights and biases on the neural netowrk  
@@ -145,10 +77,26 @@ class NeuralNetwork:
 
     def evaluate(self, a):
         output = self.feed_forward(a)[0]
-        
-        # Returns the max index and the values of the output layer
         return np.argmax(output), output
+
+    def add_layers(self, layers):
+        self.layers = []
+        for i in range(len(layers)):
+            self.add(layers[i])
         
+    def add(self, layer):
+        if len(self.layers) == 0:
+            print(self.input_size)
+            layer.input_size = self.input_size
+            self.layers.append(layer)
+            return
+        
+        prev = self.layers[-1]
+        prev.next_layer = layer
+        layer.prev_layer = prev
+        layer.input_size = prev.output_size
+        self.layers.append(layer)
+
     def save_data(self):
         data = dict()
 
@@ -169,8 +117,7 @@ class NeuralNetwork:
             data[i] = layer_data
 
         return data
-
-
+        
     def load_data(self, path):
         #Read create dictionary from string with JSON data in it
         data = json.loads(open(path).read())
