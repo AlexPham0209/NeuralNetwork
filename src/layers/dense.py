@@ -54,6 +54,9 @@ class Dense(Layer):
     # Setter function that is ran when the 
     @Layer.input_size.setter
     def input_size(self, value):
+        if np.ndim(value) > 0:
+            raise Exception("Invalid input shape")
+        
         self._input_size = value
 
         # Once we know what the input size is, we create the weights and biases
