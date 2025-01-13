@@ -7,7 +7,7 @@ import random
 import numpy as np
 import activation as act
 import network as nw
-from layer import Dense
+import layers.dense as Dense
 
 ROW = 28
 COL = 28
@@ -37,14 +37,9 @@ def train_network():
     ]
 
     network = nw.Model(architecture, input_size = ROW * COL)
-
     network.learn(train_data, 5, 0.5, 10, debug=True)
-
-    # save_data = network.save_data()
-    # with open("programs/digitrecognition/output/network.json", "w") as file:
-    #     json.dump(save_data, file, indent = 3)
-    
     test(network)
+    
 
 def load_network():
     network = nw.NeuralNetwork([Dense(ROW * COL), 

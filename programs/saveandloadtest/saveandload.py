@@ -6,6 +6,7 @@ import random
 import numpy as np
 import activation as act
 import network as nw
+from layers.dense import Dense
 
 dataset = [
     ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
@@ -30,16 +31,17 @@ def print_output(network, data):
     
 def train():
     global dataset 
-    network = nw.NeuralNetwork([3, 5, 5, 10], act.Sigmoid())
+    architecture = [
+        Dense(5, act.Sigmoid()),
+        Dense(5, act.Sigmoid()),
+        Dense(10, act.Sigmoid())
+    ]
+    network = nw.Model(architecture, input_size = 3)
 
     print_output(network, dataset)
-    network.learn(dataset, 1, 0.5, 10)
+    network.learn(dataset, 100000, 0.5, 10)
     print()
     print_output(network, dataset)
-
-    save_data = network.save_data()
-    with open("test.json", "w") as file:
-        json.dump(save_data, file, indent = 3)
 
 def load():
     global dataset

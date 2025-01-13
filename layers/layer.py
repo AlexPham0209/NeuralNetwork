@@ -3,11 +3,6 @@ import random
 import numpy as np
 import activation as act
 
-class LayerType(Enum):
-    INPUT = 1
-    HIDDEN = 1
-    OUTPUT = 1 
-
 class Layer:
     def __init__(self, output_size, activation = act.Sigmoid()):
         self.activation = activation

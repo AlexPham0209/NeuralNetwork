@@ -7,8 +7,7 @@ import concurrent
 import activation as act
 import numpy as np
 
-from layer import Layer
-
+import layers.layer as Layer
 
 class Model:
     def __init__(self, layers, input_size, path = ""):
