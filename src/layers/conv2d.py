@@ -1,8 +1,7 @@
 import random
 import numpy as np
 from scipy.signal import convolve2d
-from layers.layer import Layer
-
+from src.layers.layer import Layer
 
 class Conv2D(Layer):
     def __init__(self, output_size, kernel_size, activation):

@@ -4,9 +4,9 @@ sys.path.insert(1, '../NeuralNetwork')
 import json
 import random
 import numpy as np
-import activation as act
-import network as nw
-from layers.dense import Dense
+import src.activation as act
+import src.network as nw
+from src.layers.dense import Dense
 
 dataset = [
     ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
@@ -39,7 +39,7 @@ def train():
     network = nw.Model(architecture, input_size = 3)
 
     print_output(network, dataset)
-    network.learn(dataset, 100000, 0.5, 10)
+    network.learn(dataset, 10000, 0.5, 10)
     print()
     print_output(network, dataset)
 

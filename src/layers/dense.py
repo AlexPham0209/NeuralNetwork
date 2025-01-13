@@ -1,11 +1,11 @@
 import random
 import numpy as np
-from layers.layer import Layer
+from src.layers.layer import Layer
 
 class Dense(Layer):
     def __init__(self, output_size, activation):
         super().__init__(output_size, activation)
-
+        
         self.error = np.zeros(self.output_size)
         self.out = np.zeros(self.output_size)
 

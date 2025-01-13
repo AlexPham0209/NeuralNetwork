@@ -1,7 +1,4 @@
-from enum import Enum
-import random
-import numpy as np
-import activation as act
+import src.activation as act
 
 class Layer:
     def __init__(self, output_size, activation = act.Sigmoid()):

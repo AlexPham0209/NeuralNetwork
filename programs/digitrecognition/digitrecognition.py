@@ -1,13 +1,12 @@
 import sys
-
 sys.path.insert(1, '../NeuralNetwork')
 
 import json
 import random
 import numpy as np
-import activation as act
-import network as nw
-from layers.dense import Dense
+import src.activation as act
+import src.layers.dense as Dense
+import src.layers.conv2d as Conv2D
 
 ROW = 28
 COL = 28

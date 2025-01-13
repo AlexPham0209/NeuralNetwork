@@ -1,7 +1,6 @@
 import numpy as np
 from skimage.measure import block_reduce
-from layers.layer import Layer
-
+from src.layers.layer import Layer
 
 class Pooling(Layer):
     def __init__(self, output_size, kernel_size, activation):

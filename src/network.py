@@ -1,13 +1,9 @@
-from collections import deque
-import multiprocessing
-import json
-import random
-
-import concurrent
-import activation as act
+import src.activation as act
+import src.layers.layer as Layer
 import numpy as np
 
-import layers.layer as Layer
+import json
+import random
 
 class Model:
     def __init__(self, layers, input_size, path = ""):
