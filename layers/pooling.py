@@ -1,3 +1,7 @@
+import numpy as np
+from layers.layer import Layer
+
+
 class Pooling(Layer):
     def __init__(self, kernel_size, stride):
         self.kernel_size = kernel_size
