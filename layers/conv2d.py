@@ -21,11 +21,10 @@ class Conv2D(Layer):
         return convolve2d(self.filter, self.error, mode="full")
 
     def update_gradient(self, prev):
-        derivative = self.activation.derivative(self.out)
         self.kernel_gradient += convolve2d(prev, self.error, mode="valid")
         
     def apply_gradient(self, eta, size = 1):
-        self.weights -= (eta / size) * self.weights_gradient
+        self.kernel -= (eta / size) * self.kernel_gradient
 
         # Resets the error after applying gradient vector
         self.kernel_gradient = np.zeros(self.kernel_size)
