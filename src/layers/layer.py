@@ -1,7 +1,7 @@
 import src.activation as act
 
 class Layer:
-    def __init__(self, output_size, activation = act.Sigmoid()):
+    def __init__(self, output_size = (0), activation = act.Sigmoid()):
         self.activation = activation
         self.output_size = output_size
         

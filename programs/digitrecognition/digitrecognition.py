@@ -5,8 +5,8 @@ import json
 import random
 import numpy as np
 import src.activation as act
-import src.layers.dense as Dense
-import src.layers.conv2d as Conv2D
+from src.layers.dense import Dense
+from src.network import Model
 
 ROW = 28
 COL = 28
@@ -35,7 +35,7 @@ def train_network():
         Dense(10, act.Sigmoid())
     ]
 
-    network = nw.Model(architecture, input_size = ROW * COL)
+    network = Model(architecture, input_size = ROW * COL)
     network.learn(train_data, 20, 0.5, 25, debug=True)
     test(network)
 
@@ -47,7 +47,7 @@ def load_network():
         Dense(10, act.Sigmoid())
     ]
 
-    network = nw.Model(architecture, input_size = ROW * COL)
+    network = Model(architecture, input_size = ROW * COL)
     test(network)
 
 def test(network):

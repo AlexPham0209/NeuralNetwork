@@ -97,7 +97,7 @@ class Model:
         #Overall neural network data
         data["layers"] = self.layer_size
         data["activation_type"] = str(self.activation)
-
+        
         #Create new JSON key for each layer
         for i, layer in enumerate(self.layers):
             layer_data = dict()
