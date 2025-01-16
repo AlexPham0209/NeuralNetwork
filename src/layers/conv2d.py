@@ -21,7 +21,7 @@ class Conv2D(Layer):
         
         channel_stride, r_stride, c_stride = a.strides
         c, h, w = a.shape
-        
+
         out_h, out_w = (h - k_h) + 1, (w - k_w) + 1
         new_shape = (c, out_h, out_w, k_h, k_w)
         new_stride = (channel_stride, r_stride, c_stride, r_stride, c_stride)
@@ -32,13 +32,13 @@ class Conv2D(Layer):
     def feed_forward(self, a):
         self.input = a
         height, width, channel = self.kernel_size
-        self.out = self.convolve(a, self.kernel, mode="valid")
+        self.out = self.convolve(a, self.kernel)
         return self.activation.activate(self.out)
     
     def backpropagation(self, prev):
         height, width, channel = self.filter_size
         self.error = prev * self.activation.derivative(self.out)
-        return self.convolve(self.filter, self.error[::, ::, -1, -1], mode='full')
+        return self.convolve(self.filter[::, ::, -1, -1], self.error, mode='full')
 
     def update_gradient(self):
         height, width, channel = self.filter_size
