@@ -15,16 +15,13 @@ class Dense(Layer):
         return self.activation.activate(self.out)
     
     def backpropagation(self, prev):
-        activate = self.activation.activate
-        derivative = self.activation.derivative
-        
         # Calculate dC/dA for output
-        self.error = 2 * (activate(self.out) - prev) if not self.next_layer else prev
+        self.error = 2 * (self.activation.activate(self.out) - prev) if not self.next_layer else prev
 
         if not self.prev_layer:
             return None
         
-        return self.weights.T.dot(derivative(self.out) * self.error)
+        return self.weights.T.dot(self.activation.derivative(self.out) * self.error)
 
     def update_gradient(self):
         o = self.activation.derivative(self.out)

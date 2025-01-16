@@ -1,7 +1,9 @@
+import numpy as np
 from src.layers.layer import Layer
 
 class Flatten(Layer):
     def feed_forward(self, a):
+        self.input = a
         return a.flatten()
 
     def backpropagation(self, prev):
