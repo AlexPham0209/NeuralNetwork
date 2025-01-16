@@ -14,13 +14,14 @@ class Conv2D(Layer):
         self.kernel_gradient = np.zeros(self.kernel_size)
     
     def convolve(a, b, mode = 'valid'):
-        if mode == 'full':
-            a = np.pad(a, ((0,0), (1, 1), (1, 1)), 'constant', constant_values=0)
-        
-        c, h, w = a.shape
-        channel_stride, r_stride, c_stride = a.strides
         num, k_c, k_h, k_w = b.shape
-            
+
+        if mode == 'full':
+            a = np.pad(a, ((0,0), (k_h - 1, k_h - 1), (k_w - 1, k_w - 1)), 'constant', constant_values=0)
+        
+        channel_stride, r_stride, c_stride = a.strides
+        c, h, w = a.shape
+        
         out_h, out_w = (h - k_h) + 1, (w - k_w) + 1
         new_shape = (c, out_h, out_w, k_h, k_w)
         new_stride = (channel_stride, r_stride, c_stride, r_stride, c_stride)
@@ -31,7 +32,7 @@ class Conv2D(Layer):
     def feed_forward(self, a):
         self.input = a
         height, width, channel = self.kernel_size
-        self.out = self.convolve(a, self.kernel,mode="")
+        self.out = self.convolve(a, self.kernel, mode="valid")
         return self.activation.activate(self.out)
     
     def backpropagation(self, prev):
