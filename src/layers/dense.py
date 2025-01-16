@@ -10,6 +10,7 @@ class Dense(Layer):
         self.out = np.zeros(self.output_size)
 
     def feed_forward(self, a):
+        self.input = a
         self.out = self.weights.dot(a) + self.biases 
         return self.activation.activate(self.out)
     
@@ -25,14 +26,9 @@ class Dense(Layer):
         
         return self.weights.T.dot(derivative(self.out) * self.error)
 
-    def update_gradient(self, prev):
-        activate = self.activation.activate
-        derivative = self.activation.derivative
-
-        p = activate(prev)
-        o = derivative(self.out)
-
-        self.weights_gradient += np.tile((self.error * o), (self.input_size,1)).T * p
+    def update_gradient(self):
+        o = self.activation.derivative(self.out)
+        self.weights_gradient += np.tile((self.error * o), (self.input_size,1)).T * self.input
         self.biases_gradient += o * self.error
 
     def apply_gradient(self, eta, size = 1):

@@ -12,51 +12,40 @@ class Conv2D(Layer):
         
         self.randomize_kernel()
         self.kernel_gradient = np.zeros(self.kernel_size)
+    
+    def convolve(a, b, mode = 'valid'):
+        if mode == 'full':
+            a = np.pad(a, ((0,0), (1, 1), (1, 1)), 'constant', constant_values=0)
         
-    def feed_forward(self, a):
-        height, width, channel = self.kernel_size
-        self.out = np.array((height, width, self.kernels))
+        c, h, w = a.shape
+        channel_stride, r_stride, c_stride = a.strides
+        num, k_c, k_h, k_w = b.shape
+            
+        out_h, out_w = (h - k_h) + 1, (w - k_w) + 1
+        new_shape = (c, out_h, out_w, k_h, k_w)
+        new_stride = (channel_stride, r_stride, c_stride, r_stride, c_stride)
         
-        # Goes through all feature maps/filters
-        for i in range(self.kernels):
-            res = np.array((height, width))
+        out = np.lib.stride_tricks.as_strided(a, new_shape, new_stride)
+        return np.einsum("chwkt,nckt->nhw", out, b)
 
-            # Applies convolution on all channels and adds them together
-            for c in range(len(channel)):
-                res += convolve2d(a[::, ::, c], self.kernel[i, ::-1, ::-1, c], mode='valid')
-                
-            self.out[::, ::, i] = res
-        
-        return self.out
+    def feed_forward(self, a):
+        self.input = a
+        height, width, channel = self.kernel_size
+        self.out = self.convolve(a, self.kernel,mode="")
+        return self.activation.activate(self.out)
     
     def backpropagation(self, prev):
         height, width, channel = self.filter_size
         self.error = prev * self.activation.derivative(self.out)
-        
-        delta = np.array((height, width, self.filters))
-        # Using the error dC/dA, we can calculate dC/dA by calculating the full convolution between 
-        # the input matrix flipped 180 degrees and the error matrix
-        # We do this for all filters and all channels 
-        for i in range(self.filters):
-            res = np.array((height, width))
+        return self.convolve(self.filter, self.error[::, ::, -1, -1], mode='full')
 
-            for c in range(len(channel)):
-                res += convolve2d(self.filter[i, ::, ::, c], self.error[i, ::, ::, c], mode='full')
-
-            delta[::, ::, i] = res
-    
-        return delta
-    
-    def update_gradient(self, prev):
+    def update_gradient(self):
         height, width, channel = self.filter_size
 
         # Using error dC/dA, we can calculate dC/dF by getting the valid convolution between 
         # the error matrix and the input matrix (No 180 degree rotation)
-        for i in range(self.filters):
-            res = np.array((height, width))
-            for c in range(len(channel)):
-                self.kernel_gradient[i, :, :, c] += convolve2d(self.prev[i, ::-1, ::-1, c], self.error[i, ::, ::, c], mode='valid')
-
+        self.kernel_gradient += self.convolve(self.input, self.error)
+        
     def apply_gradient(self, eta, size = 1):
         self.kernel -= (eta / size) * self.kernel_gradient
 

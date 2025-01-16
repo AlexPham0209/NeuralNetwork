@@ -15,7 +15,7 @@ class Layer:
     def backpropagation(self, prev):
         pass
     
-    def update_gradient(self, prev):
+    def update_gradient(self):
         pass
 
     def apply_gradient(self, eta, size = 1):

@@ -58,10 +58,9 @@ class Model:
             error = curr.backpropagation(error)
         
         # Update gradient vector for biases and weights
-        self.layers[0].update_gradient(a)
-        for i in range(1, len(self.layers)):
-            curr, prev = self.layers[i], self.layers[i - 1]
-            curr.update_gradient(prev.out)
+        #self.layers[0].update_gradient(a)
+        for curr in self.layers:
+            curr.update_gradient()
 
         
     def apply_gradient(self, a, eta, size):
