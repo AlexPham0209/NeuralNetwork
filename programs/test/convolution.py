@@ -6,20 +6,33 @@ import numpy as np
 from src.layers.flatten import Flatten
 from scipy.signal import convolve
 
-def convolve(a, b, stride = 1, mode = 'valid'):
-    if mode == 'full':
-        a = np.pad(arr, ((0,0), (1, 1), (1, 1)), 'constant', constant_values=0)
-    
+# dC/dF code
+def convolve(a, b):
     c, h, w = a.shape
     channel_stride, r_stride, c_stride = a.strides
-    num, k_c, k_h, k_w = b.shape
+    k_c, k_h, k_w = b.shape
         
-    out_h, out_w = (h - k_h) // stride + 1, (w - k_w) // stride + 1
+    out_h, out_w = (h - k_h) + 1, (w - k_w) + 1
     new_shape = (c, out_h, out_w, k_h, k_w)
-    new_stride = (channel_stride, r_stride * stride, c_stride * stride, r_stride, c_stride)
+    new_stride = (channel_stride, r_stride, c_stride, r_stride, c_stride)
     
     out = np.lib.stride_tricks.as_strided(a, new_shape, new_stride)
-    return np.einsum("chwkt,nckt->nhw", out, b)
+    return np.einsum("nhwkt,ckt->cnhw", out, b)
+
+# dC/dA code
+def convolve2(a, b, stride = 1, mode = 'valid'):
+    a = np.pad(a, ((0, 0), (0, 0), (1, 1), (1, 1)), 'constant', constant_values=0)
+    n, c, h, w = a.shape
+    num_stride, channel_stride, r_stride, c_stride = a.strides
+    k_c, k_h, k_w = b.shape
+        
+    out_h, out_w = (h - k_h) + 1, (w - k_w) + 1
+    new_shape = (n, c, out_h, out_w, k_h, k_w)
+    new_stride = (num_stride, channel_stride, r_stride * stride, c_stride * stride, r_stride, c_stride)
+    
+    out = np.lib.stride_tricks.as_strided(a, new_shape, new_stride)
+
+    return np.einsum("nchwkt,nkt->chw", out, b)
 
 def pooling(a, kernel_size, pad = True):
     o, j, k = a.shape
@@ -51,38 +64,38 @@ def pooling(a, kernel_size, pad = True):
     return out.max(axis=(3, 4))
     
     
-# arr = np.array([[
-#     [0, 1],
-#     [3, 4],
-#     [6, 7],
-# ], 
-# [
-#     [0, 1],
-#     [3, 4],
-#     [6, 7],
-# ]])
+arr = np.array([[
+    [0, 1, 4],
+    [3, 4, 5],
+    [6, 7, 6],
+], 
+[
+    [0, 1, 1],
+    [3, 4, 2],
+    [6, 7, 3],
+]])
 
-# k1 = np.array([[
-#     [0, 1],
-#     [2, 3]
-# ],
-# [
-#     [2, 1],
-#     [2, 5]
-# ]])
+k1 = np.array([[
+    [0, 1],
+    [2, 3]
+],
+[
+    [2, 1],
+    [2, 5]
+]])
 
-# k2 = np.array([[
-#     [4, 1],
-#     [2, 5]
-# ],
-# [
-#     [2, 1],
-#     [2, 5]
-# ]])
+k2 = np.array([[
+    [4, 1],
+    [2, 5]
+],
+[
+    [2, 1],
+    [2, 5]
+]])
 
-arr = np.array([[0, 1], [2, 3]])
-w, h = arr.shape
-print(arr.repeat(2, axis=0).repeat(2, axis=1))
+print(convolve(arr, k1))
+print()
+print(convolve2(np.array([k1, k2]), k1))
 
 # print(arr)
 # print(np.pad(arr, ((0,0), (1, 1), (1, 1)), 'constant', constant_values=0))
@@ -99,6 +112,8 @@ print(arr.repeat(2, axis=0).repeat(2, axis=1))
 #     [2, 3]
 # ])
 
-# print(convolve(arr, res))
+#print(convolve(np.array(arr), k1))
+# print()
+# print(np.array([k1, k2]))
 # print(convolve(arr, res, mode="full"))
-print(pooling(arr, (2, 2)))
+# print(pooling(arr, (2, 2)))
