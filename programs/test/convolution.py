@@ -21,7 +21,7 @@ def convolve(a, b):
     return np.einsum("nhwkt,ckt->cnhw", out, b)
 
 # dC/dA code
-def convolve2(a, b, stride = 1, mode = 'valid'):
+def convolve2(a, b, stride = 1):
     a = np.pad(a, ((0, 0), (0, 0), (1, 1), (1, 1)), 'constant', constant_values=0)
     b = b[:, ::-1, ::-1]
     n, c, h, w = a.shape
@@ -45,7 +45,7 @@ def test(a, b):
 
     for i in range(k_c):
         for j in range(k_c):
-            res[i, j] = correlate2d(a[j], b[i], "valid")
+            res[i, j] += correlate2d(a[j], b[i], "valid")
 
     return res
 
@@ -53,7 +53,7 @@ def test2(a, b):
     n, c, h, w = a.shape
     k_c, k_h, k_w = b.shape
     out_h, out_w = (h - k_h) + 1, (w - k_w) + 1
-    new_shape = (c, out_h + 1, out_w + 1)
+    new_shape = (c, 3)
         
     res = np.zeros(new_shape)
     print(res.shape)
