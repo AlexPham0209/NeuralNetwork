@@ -2,6 +2,7 @@ import random
 import numpy as np
 from scipy.signal import convolve2d
 from scipy.signal import correlate2d
+import cupy as cp
 from src.layers.layer import Layer
 
 class Conv2D(Layer):
@@ -22,8 +23,8 @@ class Conv2D(Layer):
         new_shape = (c, out_h, out_w, k_h, k_w)
         new_stride = (channel_stride, r_stride, c_stride, r_stride, c_stride)
         
-        out = np.lib.stride_tricks.as_strided(a, new_shape, new_stride)
-        self.out = np.einsum("chwkt,nckt->nhw", out, self.kernel, optimize=True) + self.biases
+        out = cp.lib.stride_tricks.as_strided(a, new_shape, new_stride)
+        self.out = cp.einsum("chwkt,nckt->nhw", out, self.kernel) + self.biases
 
         # Naive Implementation
 
@@ -44,15 +45,16 @@ class Conv2D(Layer):
         # dC/dA is the convolution between the kernel and the error flipped 180 degrees
         flipped_error = self.error[:, ::-1, ::-1]
         k_c, k_h, k_w = flipped_error.shape
-        kernel = np.pad(self.kernel, ((0, 0), (0, 0), (k_h - 1, k_h - 1), (k_w - 1, k_w - 1)), 'constant', constant_values=0)
-        
+
+        kernel = cp.pad(self.kernel, ((0, 0), (0, 0), (k_h - 1, k_h - 1), (k_w - 1, k_w - 1)), 'constant', constant_values=0)
+
         n, c, h, w = kernel.shape
         num_stride, channel_stride, r_stride, c_stride = kernel.strides
         
         out_h, out_w = (h - k_h) + 1, (w - k_w) + 1
         new_shape = (n, c, out_h, out_w, k_h, k_w)
         new_stride = (num_stride, channel_stride, r_stride, c_stride, r_stride, c_stride)
-        delta = np.lib.stride_tricks.as_strided(kernel, new_shape, new_stride)
+        delta = cp.lib.stride_tricks.as_strided(kernel, new_shape, new_stride)
         
         # Naive implementation
         # All errors(i) in errors are used to convolve kernel[i] and those get sum together.  For example, if kernel is (3, 2, 3, 3) and 
@@ -67,7 +69,7 @@ class Conv2D(Layer):
         # print(np.allclose(res, np.einsum("nchwkt,nkt->chw", delta, flipped_error)))
         # print()
         
-        return np.einsum("nchwkt,nkt->chw", delta, flipped_error, optimize=True)
+        return cp.einsum("nchwkt,nkt->chw", delta, flipped_error)
 
     def update_gradient(self):
         c, h, w = self.input_size
@@ -78,8 +80,8 @@ class Conv2D(Layer):
         new_shape = (c, out_h, out_w, k_h, k_w)
         new_stride = (channel_stride, r_stride, c_stride, r_stride, c_stride)
         
-        out = np.lib.stride_tricks.as_strided(self.input, new_shape, new_stride)
-        delta = np.einsum("nhwkt,ckt->cnhw", out, self.error, optimize=True)
+        out = cp.lib.stride_tricks.as_strided(self.input, new_shape, new_stride)
+        delta = cp.einsum("nhwkt,ckt->cnhw", out, self.error)
 
         # Naive implementation
         # We correlate all matrices in input to each error in the errors.  For example, we correlate each matrix in tensor by the first error. 
@@ -100,8 +102,8 @@ class Conv2D(Layer):
         self.biases -= (eta / size) * self.error
 
         # Resets the error after applying gradient vector
-        self.kernel_gradient = np.zeros(self.kernel.shape)
-        self.biases_gradient = np.zeros(self.output_size)
+        self.kernel_gradient = cp.zeros(self.kernel.shape)
+        self.biases_gradient = cp.zeros(self.output_size)
     
     @Layer.input_size.setter
     def input_size(self, value):
@@ -112,12 +114,12 @@ class Conv2D(Layer):
 
         c, h, w = value
         height, width = self.kernel_size
-        self.kernel = np.random.uniform(low = -1.0, high = 1.0, size = (self.kernels, c, height, width))
-        self.kernel_gradient = np.zeros(self.kernel.shape)
+        self.kernel = cp.random.uniform(low = -1.0, high = 1.0, size = (self.kernels, c, height, width))
+        self.kernel_gradient = cp.zeros(self.kernel.shape)
 
         k_n, k_c, k_h, k_w = self.kernel.shape
         out_h, out_w = (h - k_h) + 1, (w - k_w) + 1
         self.output_size = (k_n, out_h, out_w)
 
-        self.biases = np.random.uniform(low = -1.0, high = 1.0, size = self.output_size)
-        self.biases_gradient = np.zeros(self.output_size)
+        self.biases = cp.random.uniform(low = -1.0, high = 1.0, size = self.output_size)
+        self.biases_gradient = cp.zeros(self.output_size)

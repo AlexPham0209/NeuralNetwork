@@ -1,5 +1,6 @@
 import random
 import numpy as np
+import cupy as cp
 from src.layers.layer import Layer
 
 class Dense(Layer):
@@ -8,8 +9,8 @@ class Dense(Layer):
         self.output_size = output_size
         self.activation = activation
         
-        self.error = np.zeros(self.output_size)
-        self.out = np.zeros(self.output_size)
+        self.error = cp.zeros(self.output_size)
+        self.out = cp.zeros(self.output_size)
 
     def feed_forward(self, a):
         self.input = a
@@ -27,7 +28,7 @@ class Dense(Layer):
         
     def update_gradient(self):
         o = self.activation.derivative(self.out)
-        self.weights_gradient += np.tile((self.error * o), (self.input_size,1)).T * self.input
+        self.weights_gradient += cp.tile((self.error * o), (self.input_size,1)).T * self.input
         self.biases_gradient += o * self.error
 
     def apply_gradient(self, eta, size = 1):
@@ -35,21 +36,21 @@ class Dense(Layer):
         self.biases -= (eta / size) * self.biases_gradient
         
         # Resets the error after applying gradient vector
-        self.weights_gradient = np.zeros((self.output_size, self.input_size))
-        self.biases_gradient = np.zeros(self.output_size)
+        self.weights_gradient = cp.zeros((self.output_size, self.input_size))
+        self.biases_gradient = cp.zeros(self.output_size)
 
     # Randomizes all weights from 0 to 1 
     def randomize_weights(self):
-        self.weights = np.array([[random.uniform(-1.0, 1.0) for j in range(self.input_size)] for i in range(self.output_size)])
+        self.weights = cp.array([[random.uniform(-1.0, 1.0) for j in range(self.input_size)] for i in range(self.output_size)])
             
     # Randomizes all biases from 0 to 1 
     def randomize_biases(self):
-        self.biases = np.array([random.uniform(-1.0, 1.0) for i in range(self.output_size)])
+        self.biases = cp.array([random.uniform(-1.0, 1.0) for i in range(self.output_size)])
     
     # Setter function that is ran when the 
     @Layer.input_size.setter
     def input_size(self, value):
-        if np.ndim(value) > 0:
+        if cp.ndim(value) > 0:
             raise Exception("Not a one dimensional input")
         
         self._input_size = value
@@ -59,5 +60,5 @@ class Dense(Layer):
         self.randomize_biases()
 
         # Sets the weight and biases gradients as well
-        self.weights_gradient = np.zeros((self.output_size, self.input_size))
-        self.biases_gradient = np.zeros(self.output_size)
+        self.weights_gradient = cp.zeros((self.output_size, self.input_size))
+        self.biases_gradient = cp.zeros(self.output_size)

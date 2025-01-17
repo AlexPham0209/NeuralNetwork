@@ -1,6 +1,7 @@
 import src.activation as act
 from src.layers.layer import Layer
 import numpy as np
+import cupy as cp
 
 import json
 import random
@@ -79,7 +80,6 @@ class Model:
         
     def add(self, layer):
         if len(self.layers) == 0:
-            print(self.input_size)
             layer.input_size = self.input_size
             self.layers.append(layer)
             return
@@ -88,6 +88,7 @@ class Model:
         prev.next_layer = layer
         layer.prev_layer = prev
         layer.input_size = prev.output_size
+        print(prev.output_size)
         self.layers.append(layer)
 
     def save_data(self):
@@ -128,8 +129,8 @@ class Model:
         for i in range(len(self.layer_size) - 1):
             layer_data = data[str(i)]
             layer = Layer(layer_data["biases_size"], layer_data["weights_size"], self.activation)
-            layer.weights = np.array(layer_data["weights"])
-            layer.biases = np.array(layer_data["biases"])
+            layer.weights = cp.array(layer_data["weights"])
+            layer.biases = cp.array(layer_data["biases"])
 
             self.layers.append(layer)
 

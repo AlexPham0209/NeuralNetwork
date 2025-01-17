@@ -1,4 +1,5 @@
 import numpy as np
+import cupy as cp
 from src.layers.layer import Layer
 
 class Flatten(Layer):
@@ -13,4 +14,5 @@ class Flatten(Layer):
     def input_size(self, value):
         self._input_size = value
         self.output_size = np.prod(value)
+        # print(self.output_size)
     

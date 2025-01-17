@@ -1,4 +1,5 @@
 import numpy as np
+import cupy as cp
 from skimage.measure import block_reduce
 from src.layers.layer import Layer
 
@@ -18,12 +19,12 @@ class MaxPooling(Layer):
         new_shape = (out_c, out_h, out_w, k_h, k_w)
         new_stride = (channel_stride, r_stride * k_h, c_stride * k_w, r_stride, c_stride)
         
-        out = np.lib.stride_tricks.as_strided(a, new_shape, new_stride)
+        out = cp.lib.stride_tricks.as_strided(a, new_shape, new_stride)
         return out.max(axis=(3, 4))
 
     def feed_forward(self, a):
         # Pads the input so that its divisible by the kernel size
-        a = np.pad(a, ((0, 0), (0, self.pad_h), (0, self.pad_w)), 'constant', constant_values=0)
+        a = cp.pad(a, ((0, 0), (0, self.pad_h), (0, self.pad_w)), 'constant', constant_values=0)
         self.input = a
         
         self.out = self.pooling(a, self.kernel_size)
@@ -34,7 +35,7 @@ class MaxPooling(Layer):
         # Creates a matrix where all the maxes are equal to 1 and everything else is 0
         maxs = self.out.repeat(k_h, axis=1).repeat(k_w, axis=2)
         x_window = a[:, :out_h * k_h, :out_w * k_w]
-        self.mask = np.equal(x_window, maxs).astype(int)
+        self.mask = cp.equal(x_window, maxs).astype(int)
 
         return self.out
     
@@ -62,3 +63,4 @@ class MaxPooling(Layer):
         # Sets the output size for the max pooling layer
         out_h, out_w = ((h + self.pad_h) - k_h) // k_h + 1, ((w + self.pad_w) - k_w) // k_w + 1
         self.output_size = (c, out_h, out_w)
+
