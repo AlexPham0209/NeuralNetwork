@@ -31,21 +31,56 @@ class Conv2D(Layer):
 
     def feed_forward(self, a):
         self.input = a
-        height, width, channel = self.kernel_size
-        self.out = self.convolve(a, self.kernel)
+        
+        channel_stride, r_stride, c_stride = a.strides
+        c, h, w = a.shape
+        num, k_c, k_h, k_w = self.kernel.shape
+
+        out_h, out_w = (h - k_h) + 1, (w - k_w) + 1
+        new_shape = (c, out_h, out_w, k_h, k_w)
+        new_stride = (channel_stride, r_stride, c_stride, r_stride, c_stride)
+        
+        out = np.lib.stride_tricks.as_strided(a, new_shape, new_stride)
+        self.out = np.einsum("chwkt,nckt->nhw", out, self.kernel)
+
         return self.activation.activate(self.out)
     
     def backpropagation(self, prev):
         height, width, channel = self.filter_size
         self.error = prev * self.activation.derivative(self.out)
-        return self.convolve(self.filter[::, ::, -1, -1], self.error, mode='full')
+
+        # dC/dA is the convolution between the kernel and the error flipped 180 degrees
+        kernel = np.pad(self.kernel, ((0, 0), (0, 0), (1, 1), (1, 1)), 'constant', constant_values=0)
+        flipped_error = self.error[:, ::-1, ::-1]
+
+        n, c, h, w = self.output_size
+        num_stride, channel_stride, r_stride, c_stride = self.kernel.strides
+        k_c, k_h, k_w = flipped_error.shape
+        
+        out_h, out_w = (h - k_h) + 1, (w - k_w) + 1
+        new_shape = (n, c, out_h, out_w, k_h, k_w)
+        new_stride = (num_stride, channel_stride, r_stride, c_stride, r_stride, c_stride)
+        delta = np.lib.stride_tricks.as_strided(self.kernel, new_shape, new_stride)
+
+        return np.einsum("nchwkt,nkt->chw", delta, flipped_error)
 
     def update_gradient(self):
         height, width, channel = self.filter_size
+        
+        c, h, w = self.input_size
+        channel_stride, r_stride, c_stride = self.input.strides
+        k_c, k_h, k_w = self.error.shape
+            
+        out_h, out_w = (h - k_h) + 1, (w - k_w) + 1
+        new_shape = (c, out_h, out_w, k_h, k_w)
+        new_stride = (channel_stride, r_stride, c_stride, r_stride, c_stride)
+        
+        out = np.lib.stride_tricks.as_strided(self.input, new_shape, new_stride)
+        delta = np.einsum("nhwkt,ckt->cnhw", out, )
 
         # Using error dC/dA, we can calculate dC/dF by getting the valid convolution between 
         # the error matrix and the input matrix (No 180 degree rotation)
-        self.kernel_gradient += self.convolve(self.input, self.error)
+        self.kernel_gradient += delta
         
     def apply_gradient(self, eta, size = 1):
         self.kernel -= (eta / size) * self.kernel_gradient
@@ -55,9 +90,13 @@ class Conv2D(Layer):
     
     def randomize_kernel(self):
         height, width, channel = self.kernel_size
-        self.filter = np.random.uniform(low = -1.0, high = 1.0, size = (self.kernel, height, width, channel))
+        self.filter = np.random.uniform(low = -1.0, high = 1.0, size = (self.filters, height, width, channel))
 
     @Layer.input_size.setter
     def input_size(self, value):
         self._input_size = value
-        self.output_size = value
+
+        c, h, w = value
+        k_n, k_c, k_h, k_w = self.kernel.shape
+        out_h, out_w = (h - k_h) + 1, (w - k_w) + 1
+        self.output_size = (k_n, c, out_h, out_w)

@@ -4,7 +4,8 @@ sys.path.insert(1, '../NeuralNetwork')
 
 import numpy as np
 from src.layers.flatten import Flatten
-from scipy.signal import convolve
+from scipy.signal import convolve2d
+from scipy.signal import correlate2d
 
 # dC/dF code
 def convolve(a, b):
@@ -22,6 +23,7 @@ def convolve(a, b):
 # dC/dA code
 def convolve2(a, b, stride = 1, mode = 'valid'):
     a = np.pad(a, ((0, 0), (0, 0), (1, 1), (1, 1)), 'constant', constant_values=0)
+    b = b[:, ::-1, ::-1]
     n, c, h, w = a.shape
     num_stride, channel_stride, r_stride, c_stride = a.strides
     k_c, k_h, k_w = b.shape
@@ -33,6 +35,34 @@ def convolve2(a, b, stride = 1, mode = 'valid'):
     out = np.lib.stride_tricks.as_strided(a, new_shape, new_stride)
 
     return np.einsum("nchwkt,nkt->chw", out, b)
+
+def test(a, b):
+    c, h, w = a.shape
+    k_c, k_h, k_w = b.shape
+        
+    out_h, out_w = (h - k_h) + 1, (w - k_w) + 1
+    res = np.zeros((c, k_c, out_h, out_w))
+
+    for i in range(k_c):
+        for j in range(k_c):
+            res[i, j] = correlate2d(a[j], b[i], "valid")
+
+    return res
+
+def test2(a, b):
+    n, c, h, w = a.shape
+    k_c, k_h, k_w = b.shape
+    out_h, out_w = (h - k_h) + 1, (w - k_w) + 1
+    new_shape = (c, out_h + 1, out_w + 1)
+        
+    res = np.zeros(new_shape)
+    print(res.shape)
+    for i in range(c):
+        for j in range(c):
+            print(convolve2d(a[i, j], b[i], "full"))
+            res[j] += convolve2d(a[i, j], b[i], "full")
+    
+    return res
 
 def pooling(a, kernel_size, pad = True):
     o, j, k = a.shape
@@ -94,8 +124,12 @@ k2 = np.array([[
 ]])
 
 print(convolve(arr, k1))
-print()
+print("next")
+print(test(arr, k1))
+print("\n\n")
 print(convolve2(np.array([k1, k2]), k1))
+print("next")
+print(test2(np.array([k1, k2]), k1))
 
 # print(arr)
 # print(np.pad(arr, ((0,0), (1, 1), (1, 1)), 'constant', constant_values=0))
