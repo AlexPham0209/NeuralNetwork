@@ -23,7 +23,7 @@ class Conv2D(Layer):
         new_stride = (channel_stride, r_stride, c_stride, r_stride, c_stride)
         
         out = np.lib.stride_tricks.as_strided(a, new_shape, new_stride)
-        self.out = np.einsum("chwkt,nckt->nhw", out, self.kernel) + self.biases
+        self.out = np.einsum("chwkt,nckt->nhw", out, self.kernel, optimize=True) + self.biases
 
         # Naive Implementation
 
@@ -42,12 +42,12 @@ class Conv2D(Layer):
         self.error = prev * self.activation.derivative(self.out)
 
         # dC/dA is the convolution between the kernel and the error flipped 180 degrees
-        kernel = np.pad(self.kernel, ((0, 0), (0, 0), (1, 1), (1, 1)), 'constant', constant_values=0)
         flipped_error = self.error[:, ::-1, ::-1]
-
+        k_c, k_h, k_w = flipped_error.shape
+        kernel = np.pad(self.kernel, ((0, 0), (0, 0), (k_h - 1, k_h - 1), (k_w - 1, k_w - 1)), 'constant', constant_values=0)
+        
         n, c, h, w = kernel.shape
         num_stride, channel_stride, r_stride, c_stride = kernel.strides
-        k_c, k_h, k_w = flipped_error.shape
         
         out_h, out_w = (h - k_h) + 1, (w - k_w) + 1
         new_shape = (n, c, out_h, out_w, k_h, k_w)
@@ -67,7 +67,7 @@ class Conv2D(Layer):
         # print(np.allclose(res, np.einsum("nchwkt,nkt->chw", delta, flipped_error)))
         # print()
         
-        return np.einsum("nchwkt,nkt->chw", delta, flipped_error)
+        return np.einsum("nchwkt,nkt->chw", delta, flipped_error, optimize=True)
 
     def update_gradient(self):
         c, h, w = self.input_size
@@ -79,7 +79,7 @@ class Conv2D(Layer):
         new_stride = (channel_stride, r_stride, c_stride, r_stride, c_stride)
         
         out = np.lib.stride_tricks.as_strided(self.input, new_shape, new_stride)
-        delta = np.einsum("nhwkt,ckt->cnhw", out, self.error)
+        delta = np.einsum("nhwkt,ckt->cnhw", out, self.error, optimize=True)
 
         # Naive implementation
         # We correlate all matrices in input to each error in the errors.  For example, we correlate each matrix in tensor by the first error. 
@@ -100,14 +100,14 @@ class Conv2D(Layer):
         self.biases -= (eta / size) * self.error
 
         # Resets the error after applying gradient vector
-        self.kernel_gradient = np.zeros(self.kernel_size)
+        self.kernel_gradient = np.zeros(self.kernel.shape)
         self.biases_gradient = np.zeros(self.output_size)
     
     @Layer.input_size.setter
     def input_size(self, value):
-        if np.ndim(value) != 3:
+        if len(value) != 3:
             raise Exception("Not a 3 dimensional input")
-            
+        
         self._input_size = value
 
         c, h, w = value

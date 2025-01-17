@@ -47,7 +47,7 @@ class MaxPooling(Layer):
     
     @Layer.input_size.setter
     def input_size(self, value):
-        if np.ndim(value) != 3:
+        if len(value) != 3:
             raise Exception("Not a 3 dimensional input")
         
         self._input_size = value

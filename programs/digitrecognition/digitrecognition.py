@@ -4,8 +4,12 @@ sys.path.insert(1, '../NeuralNetwork')
 import json
 import random
 import numpy as np
+
 import src.activation as act
 from src.layers.dense import Dense
+from src.layers.conv2d import Conv2D
+from src.layers.pooling import MaxPooling
+from src.layers.flatten import Flatten
 from src.network import Model
 
 ROW = 28
@@ -16,13 +20,14 @@ def read_digits(path, array = False):
     with open(path) as file:
         for data in file.read().strip().split("\n"):
             data = list(map(int, data.split(",")))
+            data
 
             expected = data[0]
             if array:
                 expected = np.zeros(10)
                 expected[data[0]] = 1 
 
-            dataset.append((np.array(data[1:])/255, expected))
+            dataset.append((np.array(data[1:]).reshape((1, 28, 28))/255, expected))
 
     return dataset
 
@@ -30,18 +35,23 @@ def read_digits(path, array = False):
 def train_network():
     train_data = read_digits("C:/Users/RedAP/Desktop/mnist_train.csv", True)
     architecture = [
-        Dense(64, act.Sigmoid()), 
+        Conv2D(4, (3, 3), act.Sigmoid()),
+        MaxPooling((2, 2)),
+        Conv2D(4, (3, 3), act.Sigmoid()),
+        MaxPooling((2, 2)),
+        Flatten(),
         Dense(64, act.Sigmoid()), 
         Dense(10, act.Sigmoid())
     ]
 
-    network = Model(architecture, input_size = ROW * COL)
-    network.learn(train_data, 20, 0.5, 25, debug=True)
+    network = Model(architecture, input_size = (1, 28, 28))
+    network.learn(train_data, 3, 0.5, 25, debug=True)
     test(network)
 
 
 def load_network():
     architecture = [
+
         Dense(64, act.Sigmoid()), 
         Dense(64, act.Sigmoid()), 
         Dense(10, act.Sigmoid())
