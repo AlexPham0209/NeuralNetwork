@@ -45,7 +45,7 @@ def test(a, b):
 
     for i in range(k_c):
         for j in range(k_c):
-            res[i, j] += correlate2d(a[j], b[i], "valid")
+            res[i, j] = correlate2d(a[j], b[i], "valid")
 
     return res
 
@@ -124,12 +124,12 @@ k2 = np.array([[
 ]])
 
 print(convolve(arr, k1))
-print("next")
-print(test(arr, k1))
-print("\n\n")
-print(convolve2(np.array([k1, k2]), k1))
-print("next")
-print(test2(np.array([k1, k2]), k1))
+# print("next")
+# print(test(arr, k1))
+# print("\n\n")
+# print(convolve2(np.array([k1, k2]), k1))
+# print("next")
+# print(test2(np.array([k1, k2]), k1))
 
 # print(arr)
 # print(np.pad(arr, ((0,0), (1, 1), (1, 1)), 'constant', constant_values=0))

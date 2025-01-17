@@ -22,7 +22,7 @@ class Dense(Layer):
             return None
         
         return self.weights.T.dot(self.activation.derivative(self.out) * self.error)
-
+        
     def update_gradient(self):
         o = self.activation.derivative(self.out)
         self.weights_gradient += np.tile((self.error * o), (self.input_size,1)).T * self.input
