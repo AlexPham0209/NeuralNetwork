@@ -1,9 +1,8 @@
 import src.activation as act
 
 class Layer:
-    def __init__(self, output_size = (0), activation = act.Sigmoid()):
-        self.activation = activation
-        self.output_size = output_size
+    def __init__(self):
+        self.output_size = (0)
         
         #Before and after layers
         self.prev_layer = None
@@ -27,5 +26,8 @@ class Layer:
 
     @input_size.setter
     def input_size(self, value):
+        if np.ndim(value) != 3:
+            raise Exception("Not a 3 dimensional input")
+        
         self._input_size = value
 

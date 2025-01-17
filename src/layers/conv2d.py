@@ -6,8 +6,8 @@ from src.layers.layer import Layer
 
 class Conv2D(Layer):
     def __init__(self, kernels, kernel_size, activation):
-        super().__init__(activation=activation)
-
+        super().__init__()
+        self.activation = activation
         self.kernel_size = kernel_size
         self.kernels = kernels
 
@@ -105,6 +105,9 @@ class Conv2D(Layer):
     
     @Layer.input_size.setter
     def input_size(self, value):
+        if np.ndim(value) != 3:
+            raise Exception("Not a 3 dimensional input")
+            
         self._input_size = value
 
         c, h, w = value

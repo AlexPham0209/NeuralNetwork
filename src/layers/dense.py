@@ -4,7 +4,9 @@ from src.layers.layer import Layer
 
 class Dense(Layer):
     def __init__(self, output_size, activation):
-        super().__init__(output_size, activation)
+        super().__init__()
+        self.output_size = output_size
+        self.activation = activation
         
         self.error = np.zeros(self.output_size)
         self.out = np.zeros(self.output_size)
@@ -48,7 +50,7 @@ class Dense(Layer):
     @Layer.input_size.setter
     def input_size(self, value):
         if np.ndim(value) > 0:
-            raise Exception("Invalid input shape")
+            raise Exception("Not a one dimensional input")
         
         self._input_size = value
 
