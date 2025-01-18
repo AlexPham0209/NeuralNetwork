@@ -40,15 +40,14 @@ class Model:
                 if debug:
                     print(f"Batch {i + 1}")
 
-                for data in batch:
-                    input, expected = data                    
-                    self.backpropagation(input, expected)
+                input, expected = [list(t) for t in zip(*batch)]
+                input = cp.array(input).T
+                expected = cp.array(expected).T
 
-                # Applies gradient vectors for weights and biases on the neural netowrk  
-                self.apply_gradient(input, eta, len(batch))
-    
+                self.backpropagation(input, expected, eta, len(batch))
+
     # Trains the neural network using gradient descent
-    def backpropagation(self, a, expected):
+    def backpropagation(self, a, expected, eta, size):
         # Feed forward algorithm to generate output values so we can evaluate the cost 
         actual, activations = self.feed_forward(a)
 
@@ -56,13 +55,8 @@ class Model:
         error = expected
         for i in range(len(self.layers) - 1, -1, -1):
             curr = self.layers[i]
-            error = curr.backpropagation(error)
+            error = curr.backpropagation(error, eta, size)
         
-        # Update gradient vector for biases and weights
-        #self.layers[0].update_gradient(a)
-        for curr in self.layers:
-            curr.update_gradient()
-
         
     def apply_gradient(self, a, eta, size):
         # Apply the gradient for each layer using the error of the previous layer
@@ -70,7 +64,7 @@ class Model:
             self.layers[i].apply_gradient(eta, size)
 
     def evaluate(self, a):
-        output = self.feed_forward(a)[0]
+        output = self.feed_forward(cp.array([a]).T)[0]
         return np.argmax(output), output
 
     def add_layers(self, layers):

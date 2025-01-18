@@ -29,4 +29,7 @@ class ReLU(Activation):
     
     def __repr__(self): 
         return "ReLU"
-    
+
+class SoftMax(Activation):
+    def activate(self, x):
+        return 

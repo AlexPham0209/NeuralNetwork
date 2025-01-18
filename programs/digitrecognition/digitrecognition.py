@@ -35,13 +35,12 @@ def read_digits(path, array = False):
 def train_network():
     train_data = read_digits("C:/Users/RedAP/Desktop/mnist_train.csv", True)
     architecture = [
-        # Conv2D(32, (3, 3), act.ReLU()),
+        # Conv2D(64, (3, 3), act.Sigmoid()),
         # MaxPooling((2, 2)),
         
-        # Conv2D(64, (3, 3), act.ReLU()),
+        # Conv2D(128, (3, 3), act.Sigmoid()),
         # MaxPooling((2, 2)),
 
-        # Conv2D(64, (3, 3), act.ReLU()),
         # Flatten(),
         Dense(64, act.Sigmoid()), 
         Dense(64, act.Sigmoid()), 
@@ -77,7 +76,7 @@ def test(network):
         output.write(f"Actual: {actual}\n")
         output.write(f"Expected: {expected}\n")
         output.write(f"Array: {test}\n\n")
-
+        
         if actual == expected:
             correct += 1 
         else:

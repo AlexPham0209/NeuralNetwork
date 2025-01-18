@@ -39,23 +39,24 @@ def train():
     network = nw.Model(architecture, input_size = 3)
 
     print_output(network, dataset)
-    network.learn(dataset, 10000, 0.5, 10)
+    network.learn(dataset, 100000, 0.5, 10)
     print()
     print_output(network, dataset)
-
+    
 def load():
     global dataset
     network = nw.NeuralNetwork([3, 5, 5, 5, 5], act.Sigmoid(), "test.json")
     print_output(network, dataset)
 
 
-while True:
-    mode = input("Train or Load: ")
-    match mode.lower().strip():
-        case "train":
-            train()
-        case "load":
-            load()
-        case _:
-            break
+# while True:
+#     mode = input("Train or Load: ")
+#     match mode.lower().strip():
+#         case "train":
+#             train()
+#         case "load":
+#             load()
+#         case _:
+#             break
 
+train()

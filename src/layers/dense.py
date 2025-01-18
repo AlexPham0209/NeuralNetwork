@@ -14,31 +14,23 @@ class Dense(Layer):
 
     def feed_forward(self, a):
         self.input = a
-        self.out = self.weights.dot(a) + self.biases 
+        self.out = self.weights @ a + self.biases[:, cp.newaxis]
         return self.activation.activate(self.out)
-    
-    def backpropagation(self, prev):
+
+    def backpropagation(self, prev, eta, size = 1):
         # Calculate dC/dA for output
         self.error = 2 * (self.activation.activate(self.out) - prev) if not self.next_layer else prev
-
-        if not self.prev_layer:
-            return None
         
-        return self.weights.T.dot(self.activation.derivative(self.out) * self.error)
+        o = self.activation.derivative(self.out) * self.error
         
-    def update_gradient(self):
-        o = self.activation.derivative(self.out)
-        self.weights_gradient += cp.tile((self.error * o), (self.input_size,1)).T * self.input
-        self.biases_gradient += o * self.error
-
-    def apply_gradient(self, eta, size = 1):
-        self.weights -= (eta / size) * self.weights_gradient
-        self.biases -= (eta / size) * self.biases_gradient
+        a = cp.repeat(o.T[:, :, cp.newaxis], self.input_size, 2)
+        b = cp.repeat(self.input.T[:, cp.newaxis, :], self.output_size, 1)
+            
+        self.weights -= (eta / size) * (a * b).sum(0)
+        self.biases -= o.sum(1)
         
-        # Resets the error after applying gradient vector
-        self.weights_gradient = cp.zeros((self.output_size, self.input_size))
-        self.biases_gradient = cp.zeros(self.output_size)
-
+        return self.weights.T @ o
+        
     # Randomizes all weights from 0 to 1 
     def randomize_weights(self):
         self.weights = cp.array([[random.uniform(-1.0, 1.0) for j in range(self.input_size)] for i in range(self.output_size)])
@@ -58,7 +50,3 @@ class Dense(Layer):
         # Once we know what the input size is, we create the weights and biases
         self.randomize_weights()
         self.randomize_biases()
-
-        # Sets the weight and biases gradients as well
-        self.weights_gradient = cp.zeros((self.output_size, self.input_size))
-        self.biases_gradient = cp.zeros(self.output_size)

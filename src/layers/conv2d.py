@@ -1,7 +1,7 @@
 import random
 import numpy as np
-from scipy.signal import convolve2d
-from scipy.signal import correlate2d
+from cupyx.scipy.signal import convolve2d
+from cupyx.scipy.signal import correlate2d
 import cupy as cp
 from src.layers.layer import Layer
 
@@ -27,7 +27,7 @@ class Conv2D(Layer):
         self.out = cp.einsum("chwkt,nckt->nhw", out, self.kernel) + self.biases
 
         # Naive Implementation
-
+        
         # res = np.array(self.biases)
         # for i in range(self.kernels):
         #     for j in range(self._input_size[0]):
@@ -87,13 +87,13 @@ class Conv2D(Layer):
         # We correlate all matrices in input to each error in the errors.  For example, we correlate each matrix in tensor by the first error. 
         # Then, it creates a row where each element is the correlation between input[i, j]/input[j] and error[i].
         
-        # res = np.zeros(self.output_size)
+        # res = cp.zeros(self.output_size)
         # for i in range(self.kernels):
         #     for j in range(self.input_size[0]):
         #         res[i, j] = correlate2d(self.input[j], self.error[i], "valid")
 
         # print("dC/dK")
-        # print(np.allclose(res, delta))
+        # print(cp.allclose(res, delta))
         # print()
         self.kernel_gradient += delta
         
