@@ -27,7 +27,7 @@ class Dense(Layer):
         b = cp.repeat(self.input.T[:, cp.newaxis, :], self.output_size, 1)
             
         self.weights -= (eta / size) * (a * b).sum(0)
-        self.biases -= o.sum(1)
+        self.biases -= (eta / size) * o.sum(1)
         
         return self.weights.T @ o
         

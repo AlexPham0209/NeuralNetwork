@@ -48,13 +48,12 @@ def train_network():
     ]
     
     network = Model(architecture, input_size = ROW * COL)
-    network.learn(train_data, 5, 0.5, 25, debug=True)
+    network.learn(train_data, 20, 0.5, 100, debug=True)
     test(network)
 
 
 def load_network():
     architecture = [
-
         Dense(64, act.Sigmoid()), 
         Dense(64, act.Sigmoid()), 
         Dense(10, act.Sigmoid())
@@ -76,7 +75,7 @@ def test(network):
         output.write(f"Actual: {actual}\n")
         output.write(f"Expected: {expected}\n")
         output.write(f"Array: {test}\n\n")
-        
+
         if actual == expected:
             correct += 1 
         else:
