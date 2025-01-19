@@ -14,37 +14,40 @@ class Conv2D(Layer):
 
     def feed_forward(self, a):
         self.input = a
-        
-        channel_stride, r_stride, c_stride = a.strides
-        c, h, w = a.shape
+        batch_stride, channel_stride, r_stride, c_stride = a.strides
+        b, c, h, w = a.shape
         num, k_c, k_h, k_w = self.kernel.shape
         
         out_h, out_w = (h - k_h) + 1, (w - k_w) + 1
-        new_shape = (c, out_h, out_w, k_h, k_w)
-        new_stride = (channel_stride, r_stride, c_stride, r_stride, c_stride)
+        new_shape = (b, c, out_h, out_w, k_h, k_w)
+        new_stride = (batch_stride, channel_stride, r_stride, c_stride, r_stride, c_stride)
         
         out = cp.lib.stride_tricks.as_strided(a, new_shape, new_stride)
-        self.out = cp.einsum("chwkt,nckt->nhw", out, self.kernel) + self.biases
 
-        # Naive Implementation
-        
-        # res = np.array(self.biases)
-        # for i in range(self.kernels):
-        #     for j in range(self._input_size[0]):
-        #         res[i, ...] += correlate2d(a[j, ...], self.kernel[i, j, ...], mode="valid") 
+        self.out = cp.einsum("bchwkt,nckt->bnhw", out, self.kernel) + self.biases
+
+        #file = open("test.txt", "w")
+        # res = cp.zeros((b, self.kernels, self.biases.shape[1], self.biases.shape[2]))
+        # for k in range(b):
+        #     t = cp.array(self.biases)
+        #     for i in range(self.kernels):
+        #         for j in range(self._input_size[0]):
+        #             t[i, ...] += correlate2d(a[k, j, ...], self.kernel[i, j, ...], mode="valid") 
+        #     res[k] = t
 
         # print("dC/dI: ")
-        # print(np.allclose(self.out, res))
+        # print(np.allclose(self.out, t))
         # print()
 
         return self.activation.activate(self.out)
-    
-    def backpropagation(self, prev):
-        self.error = prev * self.activation.derivative(self.out)
 
-        # dC/dA is the convolution between the kernel and the error flipped 180 degrees
-        flipped_error = self.error[:, ::-1, ::-1]
-        k_c, k_h, k_w = flipped_error.shape
+    def backpropagation(self, prev, eta, size):
+        self.error = prev * self.activation.derivative(self.out)
+        self.update_gradients(eta, size)
+
+        # Calculate error for next layer
+        flipped_error = self.error[:, :, ::-1, ::-1]
+        k_b, k_c, k_h, k_w = flipped_error.shape
 
         kernel = cp.pad(self.kernel, ((0, 0), (0, 0), (k_h - 1, k_h - 1), (k_w - 1, k_w - 1)), 'constant', constant_values=0)
 
@@ -55,56 +58,52 @@ class Conv2D(Layer):
         new_shape = (n, c, out_h, out_w, k_h, k_w)
         new_stride = (num_stride, channel_stride, r_stride, c_stride, r_stride, c_stride)
         delta = cp.lib.stride_tricks.as_strided(kernel, new_shape, new_stride)
-        
-        # Naive implementation
-        # All errors(i) in errors are used to convolve kernel[i] and those get sum together.  For example, if kernel is (3, 2, 3, 3) and 
-        # error is (2, 2, 2) then we convolve kernel[i][0], kernel[i][1], and kernel[i][2] by error[i] then add them all together.
 
-        # res = np.zeros(self.input_size)
-        # for i in range(self.kernels):
-        #     for j in range(self.input_size[0]):
-        #         res[j] += convolve2d(self.error[i], self.kernel[i, j], "full")
+        # res = cp.zeros((k_b, self.input_size[0], self.input_size[1], self.input_size[2]))
+        # for k in range(k_b):
+        #     t = cp.zeros(self.input_size)
+        #     for i in range(self.kernels):
+        #         for j in range(self.input_size[0]):
+        #             t[j] += convolve2d(self.kernel[i, j], self.error[k, i], "full")
+        #     res[k] = t
+
+        # other = cp.zeros((k_b, self.input_size[0], self.input_size[1], self.input_size[2]))
+        # # for k in range(k_b):
+        # #     other[k] = cp.einsum("nchwkt,nkt->chw", delta, flipped_error[k])
 
         # print("dC/dI: ")
-        # print(np.allclose(res, np.einsum("nchwkt,nkt->chw", delta, flipped_error)))
+        # print(cp.allclose(res, cp.einsum("nchwkt,bnkt->bchw", delta, flipped_error)))
         # print()
         
-        return cp.einsum("nchwkt,nkt->chw", delta, flipped_error)
+        return cp.einsum("nchwkt,bnkt->bchw", delta, flipped_error)
 
-    def update_gradient(self):
-        c, h, w = self.input_size
-        channel_stride, r_stride, c_stride = self.input.strides
-        k_c, k_h, k_w = self.error.shape
+    def update_gradients(self, eta, size = 1):
+        b, c, h, w = self.input.shape
+        batch_stride, channel_stride, r_stride, c_stride = self.input.strides
+        k_b, k_c, k_h, k_w = self.error.shape
             
         out_h, out_w = (h - k_h) + 1, (w - k_w) + 1
-        new_shape = (c, out_h, out_w, k_h, k_w)
-        new_stride = (channel_stride, r_stride, c_stride, r_stride, c_stride)
+        new_shape = (b, c, out_h, out_w, k_h, k_w)
+        new_stride = (batch_stride, channel_stride, r_stride, c_stride, r_stride, c_stride)
         
         out = cp.lib.stride_tricks.as_strided(self.input, new_shape, new_stride)
-        delta = cp.einsum("nhwkt,ckt->cnhw", out, self.error)
+        delta = cp.einsum("bnhwkt,bckt->cnhw", out, self.error)
 
-        # Naive implementation
-        # We correlate all matrices in input to each error in the errors.  For example, we correlate each matrix in tensor by the first error. 
-        # Then, it creates a row where each element is the correlation between input[i, j]/input[j] and error[i].
-        
-        # res = cp.zeros(self.output_size)
-        # for i in range(self.kernels):
-        #     for j in range(self.input_size[0]):
-        #         res[i, j] = correlate2d(self.input[j], self.error[i], "valid")
-
+        # res = cp.zeros(self.kernel.shape)
+        # for k in range(b):
+        #     o = cp.zeros(self.kernel.shape)
+        #     for i in range(self.kernels):
+        #         for j in range(self.input_size[0]):
+        #             o[i, j] = correlate2d(self.input[k, j], self.error[k, i], "valid")
+        #     res += o
+            
         # print("dC/dK")
-        # print(cp.allclose(res, delta))
+        # print(cp.allclose(delta, res))
         # print()
-        self.kernel_gradient += delta
-        
-    def apply_gradient(self, eta, size = 1):
-        self.kernel -= (eta / size) * self.kernel_gradient
-        self.biases -= (eta / size) * self.error
 
-        # Resets the error after applying gradient vector
-        self.kernel_gradient = cp.zeros(self.kernel.shape)
-        self.biases_gradient = cp.zeros(self.output_size)
-    
+        self.kernel -= (eta / size) * delta
+        self.biases -= (eta / size) * self.error.sum(0)
+        
     @Layer.input_size.setter
     def input_size(self, value):
         if len(value) != 3:
@@ -115,11 +114,9 @@ class Conv2D(Layer):
         c, h, w = value
         height, width = self.kernel_size
         self.kernel = cp.random.uniform(low = -1.0, high = 1.0, size = (self.kernels, c, height, width))
-        self.kernel_gradient = cp.zeros(self.kernel.shape)
 
         k_n, k_c, k_h, k_w = self.kernel.shape
         out_h, out_w = (h - k_h) + 1, (w - k_w) + 1
         self.output_size = (k_n, out_h, out_w)
 
         self.biases = cp.random.uniform(low = -1.0, high = 1.0, size = self.output_size)
-        self.biases_gradient = cp.zeros(self.output_size)

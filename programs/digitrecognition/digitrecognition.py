@@ -27,7 +27,7 @@ def read_digits(path, array = False):
                 expected = cp.zeros(10)
                 expected[data[0]] = 1 
 
-            dataset.append((cp.array(data[1:])/255, expected))
+            dataset.append((cp.array(data[1:]).reshape(1, 28, 28)/255, expected))
 
     return dataset
 
@@ -35,20 +35,15 @@ def read_digits(path, array = False):
 def train_network():
     train_data = read_digits("C:/Users/RedAP/Desktop/mnist_train.csv", True)
     architecture = [
-        # Conv2D(64, (3, 3), act.Sigmoid()),
-        # MaxPooling((2, 2)),
-        
-        # Conv2D(128, (3, 3), act.Sigmoid()),
-        # MaxPooling((2, 2)),
-
-        # Flatten(),
+        Conv2D(16, (3, 3), act.Sigmoid()),
+        Flatten(),
         Dense(64, act.Sigmoid()), 
         Dense(64, act.Sigmoid()), 
         Dense(10, act.Sigmoid())
     ]
     
-    network = Model(architecture, input_size = ROW * COL)
-    network.learn(train_data, 20, 0.5, 100, debug=True)
+    network = Model(architecture, input_size = (1, 28, 28))
+    network.learn(train_data, 10, 0.5, 32, debug=True)
     test(network)
 
 
@@ -86,10 +81,11 @@ def test(network):
     print(f"Percentage: {correct / (correct + wrong)}")
 
 
-if __name__ == "__main__":
-    match input("Pick Mode (Train or Load): ").lower():
-        case "train":
-            train_network()
-        case "load":
-            load_network()
+# if __name__ == "__main__":
+#     match input("Pick Mode (Train or Load): ").lower():
+#         case "train":
+#             train_network()
+#         case "load":
+#             load_network()
 
+train_network()

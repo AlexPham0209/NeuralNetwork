@@ -3,12 +3,14 @@ import cupy as cp
 a = cp.array([
     [1, 2, 3, 5, 6],
     [4, 5, 6, 5, 6]
-]).T
+])
 
 b = cp.array([
     [1, 2, 3, 4, 5],
     [2, 4, 5, 4, 5],
-]).T
+])
+
+print(cp.array([a, b]).reshape(2, 10))
 
 
 k = cp.array([[1, 2, 3, 4, 5], [2, 2, 3, 4, 5], [3, 2, 3, 4, 5]]).T
@@ -28,11 +30,11 @@ f = cp.array([2, 2, 2])
 
 # print(cp.repeat(a.transpose(1, 0), 2, 0))
 
-k = cp.tile(c, (3,1)).T
-print(k)
+# k = cp.tile(c, (3,1)).T
+# print(k)
 
-j = cp.tile(d, (3,1)).T
-print(j)
+# j = cp.tile(d, (3,1)).T
+# print(j)
 
 # print(k)
 # print(j)
@@ -42,8 +44,8 @@ print(j)
 # cp.repeat(b.T[:, :, cp.newaxis], 3, 2)
 #res = cp.repeat(a[:, :, cp.newaxis], 3, 2) * cp.repeat(b.T[:, :, cp.newaxis], 3, 2)
 # print(cp.repeat(a[:, :, cp.newaxis], 3, 2))
-l = cp.array([c, d])[:, :, cp.newaxis]
-print(cp.repeat(l, b.shape[0], 2))
+# l = cp.array([c, d])[:, :, cp.newaxis]
+# print(cp.repeat(l, b.shape[0], 2))
 
 #print(cp.repeat(b.T[:, cp.newaxis, :], a.shape[0], 1))
 # print(res.sum(0))

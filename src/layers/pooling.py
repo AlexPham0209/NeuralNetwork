@@ -9,22 +9,21 @@ class MaxPooling(Layer):
         self.kernel_size = kernel_size
 
     def pooling(self, a, kernel_size):
-        c, h, w = a.shape
+        b, c, h, w = a.shape
         k_h, k_w = kernel_size
         
-        channel_stride, r_stride, c_stride = a.strides
-        c, h, w = a.shape
+        batch_stride, channel_stride, r_stride, c_stride = a.strides
 
         out_c, out_h, out_w = self.output_size
-        new_shape = (out_c, out_h, out_w, k_h, k_w)
-        new_stride = (channel_stride, r_stride * k_h, c_stride * k_w, r_stride, c_stride)
+        new_shape = (b, out_c, out_h, out_w, k_h, k_w)
+        new_stride = (batch_stride, channel_stride, r_stride * k_h, c_stride * k_w, r_stride, c_stride)
         
         out = cp.lib.stride_tricks.as_strided(a, new_shape, new_stride)
-        return out.max(axis=(3, 4))
+        return out.max(axis=(4, 5))
 
     def feed_forward(self, a):
         # Pads the input so that its divisible by the kernel size
-        a = cp.pad(a, ((0, 0), (0, self.pad_h), (0, self.pad_w)), 'constant', constant_values=0)
+        a = cp.pad(a, ((0, 0), (0, 0), (0, self.pad_h), (0, self.pad_w)), 'constant', constant_values=0)
         self.input = a
         
         self.out = self.pooling(a, self.kernel_size)
@@ -33,19 +32,19 @@ class MaxPooling(Layer):
         k_h, k_w = self.kernel_size
         
         # Creates a matrix where all the maxes are equal to 1 and everything else is 0
-        maxs = self.out.repeat(k_h, axis=1).repeat(k_w, axis=2)
-        x_window = a[:, :out_h * k_h, :out_w * k_w]
+        maxs = self.out.repeat(k_h, axis=2).repeat(k_w, axis=3)
+        x_window = a[:, :, :out_h * k_h, :out_w * k_w]
         self.mask = cp.equal(x_window, maxs).astype(int)
 
         return self.out
     
-    def backpropagation(self, prev):
+    def backpropagation(self, prev, eta, size = 1):
         self.error = prev
         w, h = self.kernel_size
-        scaled = prev.repeat(h, axis=1).repeat(w, axis=2)
+        scaled = prev.repeat(h, axis=2).repeat(w, axis=3)
+
+        return (self.mask * scaled)[:, :, :self.input_size[1], :self.input_size[2]]
         
-        return (self.mask * scaled)[:, :self.input_size[1], :self.input_size[2]]
-    
     @Layer.input_size.setter
     def input_size(self, value):
         if len(value) != 3:
@@ -63,4 +62,4 @@ class MaxPooling(Layer):
         # Sets the output size for the max pooling layer
         out_h, out_w = ((h + self.pad_h) - k_h) // k_h + 1, ((w + self.pad_w) - k_w) // k_w + 1
         self.output_size = (c, out_h, out_w)
-
+        

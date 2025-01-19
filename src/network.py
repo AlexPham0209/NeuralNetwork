@@ -39,9 +39,9 @@ class Model:
             for i, batch in enumerate(batches):    
                 if debug:
                     print(f"Batch {i + 1}")
-
+                
                 input, expected = [list(t) for t in zip(*batch)]
-                input = cp.array(input).T
+                input = cp.array(input)
                 expected = cp.array(expected).T
 
                 self.backpropagation(input, expected, eta, len(batch))
@@ -64,9 +64,9 @@ class Model:
             self.layers[i].apply_gradient(eta, size)
 
     def evaluate(self, a):
-        output = self.feed_forward(cp.array([a]).T)[0]
+        output = self.feed_forward(cp.array([a]))[0]
         return np.argmax(output), output
-
+        
     def add_layers(self, layers):
         self.layers = []
         for i in range(len(layers)):
