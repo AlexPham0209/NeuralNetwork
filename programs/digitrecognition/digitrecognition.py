@@ -27,7 +27,7 @@ def read_digits(path, array = False):
                 expected = cp.zeros(10)
                 expected[data[0]] = 1 
 
-            dataset.append((cp.array(data[1:])/255, expected))
+            dataset.append((cp.array(data[1:]).reshape((1, 28, 28))/255, expected))
 
     return dataset
 
@@ -35,23 +35,24 @@ def read_digits(path, array = False):
 def train_network():
     train_data = read_digits("C:/Users/RedAP/Desktop/mnist_train.csv", True)
     architecture = [
-        # Conv2D(16, (3, 3), act.Sigmoid()),
-        # Conv2D(16, (3, 3), act.Sigmoid()),
-        # MaxPooling((2, 2)),
+        Conv2D(32, (3, 3), act.Sigmoid()),
+        MaxPooling((2, 2)),
 
-        # Conv2D(32, (3, 3), act.Sigmoid()),
-        # Conv2D(32, (3, 3), act.Sigmoid()),
-        # MaxPooling((2, 2)),
-        
-        # Conv2D(32, (2, 2), act.Sigmoid()),
-        # Flatten(),
-        Dense(64, act.Sigmoid()), 
+        Conv2D(64, (3, 3), act.Sigmoid()),
+        MaxPooling((2, 2)),
+
+        Conv2D(128, (3, 3), act.Sigmoid()),
+        MaxPooling((2, 2)),
+    
+        Conv2D(128, (2, 2), act.Sigmoid()),
+        Flatten(),
+
         Dense(64, act.Sigmoid()), 
         Dense(10, act.Sigmoid())
     ]
     
-    network = Model(architecture, input_size = ROW * COL)
-    network.learn(train_data, 10, 0.5, 32, debug=True)
+    network = Model(architecture, input_size = (1, 28, 28))
+    network.learn(train_data, 3, 0.5, 64, debug=True)
     test(network)
 
 
@@ -61,7 +62,7 @@ def load_network():
         Dense(64, act.Sigmoid()), 
         Dense(10, act.Sigmoid())
     ]
-
+        
     network = Model(architecture, input_size = ROW * COL)
     test(network)
 

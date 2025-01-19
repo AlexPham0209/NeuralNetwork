@@ -7,12 +7,12 @@ class Flatten(Layer):
         self.input = a
 
         b, c, h, w = a.shape
-        return a.reshape(b, self.output_size).T
+        return a.reshape(b, self.output_size)
 
     def backpropagation(self, prev, eta, size = 1):
-        s, b = prev.shape
+        b, s = prev.shape
         c, w, h = self.input_size
-        return prev.T.reshape(b, c, w, h)
+        return prev.reshape(b, c, w, h)
         
     @Layer.input_size.setter
     def input_size(self, value):
