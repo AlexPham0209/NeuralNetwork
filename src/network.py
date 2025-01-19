@@ -76,7 +76,7 @@ class Model:
         prev.next_layer = layer
         layer.prev_layer = prev
         layer.input_size = prev.output_size
-        print(prev.output_size)
+        
         self.layers.append(layer)
 
     def save_data(self):

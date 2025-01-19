@@ -29,12 +29,12 @@ class Dense(Layer):
         
     # Randomizes all weights from 0 to 1 
     def randomize_weights(self):
-        self.weights = cp.array([[random.uniform(-1.0, 1.0) for j in range(self.input_size)] for i in range(self.output_size)])
+        self.weights = cp.random.uniform(low = -1.0, high = 1.0, size = (self.output_size, self.input_size))
             
     # Randomizes all biases from 0 to 1 
     def randomize_biases(self):
-        self.biases = cp.array([random.uniform(-1.0, 1.0) for i in range(self.output_size)])
-    
+        self.biases = cp.random.uniform(low = -1.0, high = 1.0, size = (self.output_size))
+
     # Setter function that is ran when the 
     @Layer.input_size.setter
     def input_size(self, value):
@@ -46,3 +46,4 @@ class Dense(Layer):
         # Once we know what the input size is, we create the weights and biases
         self.randomize_weights()
         self.randomize_biases()
+

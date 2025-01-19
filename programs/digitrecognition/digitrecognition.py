@@ -52,7 +52,7 @@ def train_network():
     ]
     
     network = Model(architecture, input_size = (1, 28, 28))
-    network.learn(train_data, 3, 0.5, 64, debug=True)
+    network.learn(train_data, 10, 0.5, 64, debug=True)
     test(network)
 
 

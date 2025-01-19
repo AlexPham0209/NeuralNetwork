@@ -1,4 +1,6 @@
 from scipy.special import expit
+from scipy.special import softmax
+import numpy as np
 
 class Activation:
     def activate(self, x):
@@ -32,4 +34,21 @@ class ReLU(Activation):
 
 class SoftMax(Activation):
     def activate(self, x):
-        return 
+        return softmax(x, axis = 1)
+    
+    def derivative(self, x):
+        return self.activate(x) * (1 - self.activate(x))
+    
+    def __repr__(self): 
+        return "SoftMax"
+    
+
+class Tanh(Activation):
+    def activate(self, x):
+        return np.tanh(x)
+    
+    def derivative(self, x):
+        return 1 - np.tanh(x)**2 
+    
+    def __repr__(self): 
+        return "Tanh"

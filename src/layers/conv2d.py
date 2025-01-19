@@ -117,6 +117,6 @@ class Conv2D(Layer):
 
         k_n, k_c, k_h, k_w = self.kernel.shape
         out_h, out_w = (h - k_h) + 1, (w - k_w) + 1
-        self.output_size = (k_n, out_h, out_w)
+        self.output_size = (self.kernels, out_h, out_w)
 
         self.biases = cp.random.uniform(low = -1.0, high = 1.0, size = self.output_size)
