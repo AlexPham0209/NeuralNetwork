@@ -42,7 +42,7 @@ class Model:
                 
                 input, expected = [list(t) for t in zip(*batch)]
                 input = cp.array(input)
-                expected = cp.array(expected).T
+                expected = cp.array(expected)
 
                 self.backpropagation(input, expected, eta, len(batch))
 
@@ -57,16 +57,10 @@ class Model:
             curr = self.layers[i]
             error = curr.backpropagation(error, eta, size)
         
-        
-    def apply_gradient(self, a, eta, size):
-        # Apply the gradient for each layer using the error of the previous layer
-        for i in range(len(self.layers)):
-            self.layers[i].apply_gradient(eta, size)
-
     def evaluate(self, a):
         output = self.feed_forward(cp.array([a]))[0]
-        return np.argmax(output), output
-        
+        return cp.argmax(output), output
+
     def add_layers(self, layers):
         self.layers = []
         for i in range(len(layers)):

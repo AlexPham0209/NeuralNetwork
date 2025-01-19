@@ -14,22 +14,22 @@ class Dense(Layer):
 
     def feed_forward(self, a):
         self.input = a
-        self.out = self.weights @ a + self.biases[:, cp.newaxis]
-        return self.activation.activate(self.out)
+        self.out = self.weights @ a.T + self.biases[:, cp.newaxis]
+        return self.activation.activate(self.out.T)
 
     def backpropagation(self, prev, eta, size = 1):
         # Calculate dC/dA for output
-        self.error = 2 * (self.activation.activate(self.out) - prev) if not self.next_layer else prev
+        self.error = 2 * (self.activation.activate(self.out) - prev.T) if not self.next_layer else prev.T
         
         o = self.activation.derivative(self.out) * self.error
         
         a = cp.repeat(o.T[:, :, cp.newaxis], self.input_size, 2)
-        b = cp.repeat(self.input.T[:, cp.newaxis, :], self.output_size, 1)
+        b = cp.repeat(self.input[:, cp.newaxis, :], self.output_size, 1)
             
         self.weights -= (eta / size) * (a * b).sum(0)
         self.biases -= (eta / size) * o.sum(1)
         
-        return self.weights.T @ o
+        return (self.weights.T @ o).T
         
     # Randomizes all weights from 0 to 1 
     def randomize_weights(self):
