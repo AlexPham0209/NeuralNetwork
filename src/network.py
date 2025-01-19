@@ -7,7 +7,7 @@ import json
 import random
 
 class Model:
-    def __init__(self, layers, input_size, path = ""):
+    def __init__(self, layers = [], input_size = (), path = ""):
         if len(path) > 0:
             self.load_data(path)
             return
@@ -19,12 +19,10 @@ class Model:
     def feed_forward(self, a):
         # If size of the input vector does not match the amount of neurons in the input layer, return None
         # Go through each layer and feed forward
-        activations = []
         for layer in self.layers:
             a = layer.feed_forward(a)
-            activations.append(a) 
 
-        return a, activations
+        return a
     
     def learn(self, dataset, epoch, eta, batch_size = 1, debug = False):
         temp = list(dataset)
@@ -47,20 +45,26 @@ class Model:
                 self.backpropagation(input, expected, eta, len(batch))
 
     # Trains the neural network using gradient descent
-    def backpropagation(self, a, expected, eta, size):
+    def backpropagation(self, input, expected, eta, size):
         # Feed forward algorithm to generate output values so we can evaluate the cost 
-        actual, activations = self.feed_forward(a)
+        actual, activations = self.feed_forward(input)
 
         # Apply backpropagation algorithm to generate error for each layer
         error = expected
         for i in range(len(self.layers) - 1, -1, -1):
             curr = self.layers[i]
             error = curr.backpropagation(error, eta, size)
+    
+    def calculate_cost(self, input, expected):
+        actual, activations = self.feed_forward(input)
         
+
+        return 0
+
     def evaluate(self, a):
         output = self.feed_forward(cp.array([a]))[0]
         return cp.argmax(output), output
-
+    
     def add_layers(self, layers):
         self.layers = []
         for i in range(len(layers)):
@@ -73,10 +77,7 @@ class Model:
             return
         
         prev = self.layers[-1]
-        prev.next_layer = layer
-        layer.prev_layer = prev
         layer.input_size = prev.output_size
-
         self.layers.append(layer)
 
     def save_data(self):
@@ -84,7 +85,7 @@ class Model:
 
         #Overall neural network data
         data["layers"] = self.layer_size
-        data["activation_type"] = str(self.activation)
+        data["cost"] = self.c
         
         #Create new JSON key for each layer
         for i, layer in enumerate(self.layers):
@@ -119,9 +120,6 @@ class Model:
             layer = Layer(layer_data["biases_size"], layer_data["weights_size"], self.activation)
             layer.weights = cp.array(layer_data["weights"])
             layer.biases = cp.array(layer_data["biases"])
-            
-            self.layers.append(layer)
 
-        self.layers[-1].is_output = True
-        self.layers[0].is_input = True
+            self.layers.append(layer)
 

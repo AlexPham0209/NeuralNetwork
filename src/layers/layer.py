@@ -2,11 +2,8 @@ import src.activation as act
 
 class Layer:
     def __init__(self):
-        self.output_size = (0)
-        
-        #Before and after layers
-        self.prev_layer = None
-        self.next_layer = None
+        self.input_size = ()
+        self.output_size = ()
 
     def feed_forward(self, a):
         pass
@@ -14,6 +11,12 @@ class Layer:
     def backpropagation(self, prev, eta, size = 1):
         pass
     
+    def save_data(self):
+        return dict()
+
+    def load_data(self, data):
+        pass
+
     @property
     def input_size(self):
         return self._input_size
@@ -21,9 +24,3 @@ class Layer:
     @input_size.setter
     def input_size(self, value):
         self._input_size = value
-
-    def save_data(self):
-        return dict()
-
-    def load_data(self, data):
-        pass

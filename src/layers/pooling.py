@@ -4,8 +4,13 @@ from skimage.measure import block_reduce
 from src.layers.layer import Layer
 
 class MaxPooling(Layer):
-    def __init__(self, kernel_size):
+    def __init__(self, kernel_size = (), data = None):
         super().__init__()
+
+        if data:
+            self.load_data(data)
+            return
+        
         self.kernel_size = kernel_size
 
     def pooling(self, a, kernel_size):
@@ -35,7 +40,7 @@ class MaxPooling(Layer):
         maxs = self.out.repeat(k_h, axis=2).repeat(k_w, axis=3)
         x_window = a[:, :, :out_h * k_h, :out_w * k_w]
         self.mask = cp.equal(x_window, maxs).astype(int)
-
+    
         return self.out
     
     def backpropagation(self, prev, eta, size = 1):
@@ -67,3 +72,7 @@ class MaxPooling(Layer):
         data = dict()
         data["input_size"] = self.input_size
         data["output_size"] = self.output_size
+
+    def load_data(self, data):
+        self._input_size = data["input_size"]
+        self.output_size = data["output_size"]

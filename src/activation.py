@@ -4,10 +4,10 @@ import numpy as np
 
 class Activation:
     def activate(self, x):
-        pass
+        return x
 
     def derivative(self, x):
-        pass
+        return x
 
     def __repr__(self): 
         return ""

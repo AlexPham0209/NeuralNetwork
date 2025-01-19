@@ -8,8 +8,13 @@ from src.layers.layer import Layer
 import activation as act
 
 class Conv2D(Layer):
-    def __init__(self, kernels = 0, kernel_size = (0, 0), activation = act.Sigmoid(), data = None):
+    def __init__(self, kernels = 0, kernel_size = (0, 0), activation = act.Activation(), data = None):
         super().__init__()
+
+        if data:
+            self.load_data(data)
+            return
+        
         self.activation = activation
         self.kernel_size = kernel_size
         self.kernels = kernels
@@ -25,7 +30,6 @@ class Conv2D(Layer):
         new_stride = (batch_stride, channel_stride, r_stride, c_stride, r_stride, c_stride)
         
         out = cp.lib.stride_tricks.as_strided(a, new_shape, new_stride)
-
         self.out = contract("bchwkt,nckt->bnhw", out, self.kernel) + self.biases
 
         return self.activation.activate(self.out)
@@ -100,7 +104,7 @@ class Conv2D(Layer):
     
     def load_data(self, data):
         self.activation = str(act.create_activation(data["activation"]))
-        self.input_size = data["input_size"]
+        self._input_size = data["input_size"]
         self.output_size = data["output_size"]
         
         self.kernels = data["kernel_amount"]

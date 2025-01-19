@@ -5,8 +5,13 @@ from src.layers.layer import Layer
 import activation as act
 
 class Dense(Layer):
-    def __init__(self, output_size, activation):
+    def __init__(self, output_size = (), activation = act.Activation(), data = None):
         super().__init__()
+
+        if data:
+            self.load_data(data)
+            return
+        
         self.output_size = output_size
         self.activation = activation
         
@@ -20,7 +25,7 @@ class Dense(Layer):
 
     def backpropagation(self, prev, eta, size = 1):
         # Calculate dC/dA for output
-        self.error = self.activation.activate(self.out) - prev.T if not self.next_layer else prev.T
+        self.error = prev.T
         dz = self.activation.derivative(self.out) * self.error
         
         self.weights -= (eta / size) * (dz @ self.input)
@@ -36,18 +41,6 @@ class Dense(Layer):
     def randomize_biases(self):
         self.biases = cp.random.uniform(low = -1.0, high = 1.0, size = (self.output_size))
     
-    # Setter function that is ran when the 
-    @Layer.input_size.setter
-    def input_size(self, value):
-        if cp.ndim(value) > 0:
-            raise Exception("Not a one dimensional input")
-        
-        self._input_size = value
-
-        # Once we know what the input size is, we create the weights and biases
-        self.randomize_weights()
-        self.randomize_biases()
-
     def save_data(self):
         data = dict()
         data["type"] = "Dense"
@@ -60,8 +53,20 @@ class Dense(Layer):
     
     def load_data(self, data):
         self.activation = act.create_activation(data["activation"])
-        self.input_size = data["input_size"]
+        self._input_size = data["input_size"]
         self.output_size = data["output_size"]
 
         self.weights = np.array(data["weights"])
         self.biases = np.array(data["biases"])
+
+    # Setter function that is ran when the 
+    @Layer.input_size.setter
+    def input_size(self, value):
+        if cp.ndim(value) > 0:
+            raise Exception("Not a scalar")
+        
+        self._input_size = value
+
+        # Once we know what the input size is, we create the weights and biases
+        self.randomize_weights()
+        self.randomize_biases()
