@@ -22,3 +22,8 @@ class Layer:
     def input_size(self, value):
         self._input_size = value
 
+    def save_data(self):
+        return dict()
+
+    def load_data(self, data):
+        pass

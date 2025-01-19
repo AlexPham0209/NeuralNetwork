@@ -20,3 +20,8 @@ class Flatten(Layer):
         self.output_size = np.prod(value)
         # print(self.output_size)
     
+    def save_data():
+        data = dict()
+
+
+        return data

@@ -5,9 +5,10 @@ from cupyx.scipy.signal import correlate2d
 from opt_einsum import contract
 import cupy as cp
 from src.layers.layer import Layer
+import activation as act
 
 class Conv2D(Layer):
-    def __init__(self, kernels, kernel_size, activation):
+    def __init__(self, kernels = 0, kernel_size = (0, 0), activation = act.Sigmoid(), data = None):
         super().__init__()
         self.activation = activation
         self.kernel_size = kernel_size
@@ -120,3 +121,21 @@ class Conv2D(Layer):
         self.output_size = (self.kernels, out_h, out_w)
 
         self.biases = cp.random.uniform(low = -1.0, high = 1.0, size = self.output_size)
+
+    def save_data(self):
+        data = dict()
+        data["type"] = "Conv2D"
+        data["activation"] = str(self.activation)
+        data["input_size"] = self.input_size
+        data["output_size"] = self.output_size
+
+        data["kernel_amount"] = self.kernels
+        data["kernel_size"] = self.kernel_size
+
+        data["kernel"] = self.kernel.tolist()
+        data["biases"] = self.biases.tolist()
+
+        return data
+    
+    def load_data(self, data):
+        

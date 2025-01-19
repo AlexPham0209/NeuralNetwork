@@ -76,7 +76,7 @@ class Model:
         prev.next_layer = layer
         layer.prev_layer = prev
         layer.input_size = prev.output_size
-        
+
         self.layers.append(layer)
 
     def save_data(self):
@@ -119,7 +119,7 @@ class Model:
             layer = Layer(layer_data["biases_size"], layer_data["weights_size"], self.activation)
             layer.weights = cp.array(layer_data["weights"])
             layer.biases = cp.array(layer_data["biases"])
-
+            
             self.layers.append(layer)
 
         self.layers[-1].is_output = True

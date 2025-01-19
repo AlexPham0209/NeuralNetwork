@@ -42,7 +42,6 @@ class SoftMax(Activation):
     def __repr__(self): 
         return "SoftMax"
     
-
 class Tanh(Activation):
     def activate(self, x):
         return np.tanh(x)
@@ -52,3 +51,15 @@ class Tanh(Activation):
     
     def __repr__(self): 
         return "Tanh"
+    
+
+activations = {
+    "sigmoid" : Sigmoid(),
+    "relu" : ReLU(),
+    "softmax" : SoftMax(),
+    "tanh" : Tanh()
+}
+
+
+def create_activation(type):
+    return activations[type]
