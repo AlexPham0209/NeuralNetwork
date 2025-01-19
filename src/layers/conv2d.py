@@ -2,6 +2,7 @@ import random
 import numpy as np
 from cupyx.scipy.signal import convolve2d
 from cupyx.scipy.signal import correlate2d
+from opt_einsum import contract
 import cupy as cp
 from src.layers.layer import Layer
 
@@ -24,7 +25,7 @@ class Conv2D(Layer):
         
         out = cp.lib.stride_tricks.as_strided(a, new_shape, new_stride)
 
-        self.out = cp.einsum("bchwkt,nckt->bnhw", out, self.kernel, optimize=True) + self.biases
+        self.out = contract("bchwkt,nckt->bnhw", out, self.kernel) + self.biases
 
         # res = cp.zeros((b, self.kernels, self.biases.shape[1], self.biases.shape[2]))
         # for k in range(b):
@@ -74,7 +75,7 @@ class Conv2D(Layer):
         # print(cp.allclose(res, cp.einsum("nchwkt,bnkt->bchw", delta, flipped_error)))
         # print()
         
-        return cp.einsum("nchwkt,bnkt->bchw", delta, flipped_error, optimize=True)
+        return contract("nchwkt,bnkt->bchw", delta, flipped_error)
 
     def update_gradients(self, eta, size = 1):
         b, c, h, w = self.input.shape
@@ -86,7 +87,7 @@ class Conv2D(Layer):
         new_stride = (batch_stride, channel_stride, r_stride, c_stride, r_stride, c_stride)
         
         out = cp.lib.stride_tricks.as_strided(self.input, new_shape, new_stride)
-        delta = cp.einsum("bnhwkt,bckt->cnhw", out, self.error, optimize=True)
+        delta = contract("bnhwkt,bckt->cnhw", out, self.error)
 
         # res = cp.zeros(self.kernel.shape)
         # for k in range(b):

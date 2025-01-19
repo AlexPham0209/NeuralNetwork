@@ -46,7 +46,7 @@ def train_network():
     
         Conv2D(128, (2, 2), act.Sigmoid()),
         Flatten(),
-
+        
         Dense(64, act.Sigmoid()), 
         Dense(10, act.Sigmoid())
     ]

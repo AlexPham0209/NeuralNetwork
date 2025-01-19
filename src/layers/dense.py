@@ -19,17 +19,13 @@ class Dense(Layer):
 
     def backpropagation(self, prev, eta, size = 1):
         # Calculate dC/dA for output
-        self.error = 2 * (self.activation.activate(self.out) - prev.T) if not self.next_layer else prev.T
+        self.error = self.activation.activate(self.out) - prev.T if not self.next_layer else prev.T
+        dz = self.activation.derivative(self.out) * self.error
         
-        o = self.activation.derivative(self.out) * self.error
+        self.weights -= (eta / size) * (dz @ self.input)
+        self.biases -= (eta / size) * dz.sum(1)
         
-        a = cp.repeat(o.T[:, :, cp.newaxis], self.input_size, 2)
-        b = cp.repeat(self.input[:, cp.newaxis, :], self.output_size, 1)
-            
-        self.weights -= (eta / size) * (a * b).sum(0)
-        self.biases -= (eta / size) * o.sum(1)
-        
-        return (self.weights.T @ o).T
+        return (self.weights.T @ dz).T
         
     # Randomizes all weights from 0 to 1 
     def randomize_weights(self):
