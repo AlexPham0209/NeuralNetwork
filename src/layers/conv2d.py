@@ -1,16 +1,17 @@
-import random
 import numpy as np
 from cupyx.scipy.signal import convolve2d
 from cupyx.scipy.signal import correlate2d
-from opt_einsum import contract
 import cupy as cp
+from opt_einsum import contract
+
 from src.layers.layer import Layer
-import activation as act
+import src.activation as act
+
+import random
 
 class Conv2D(Layer):
     def __init__(self, kernels = 0, kernel_size = (0, 0), activation = act.Activation(), data = None):
         super().__init__()
-
         if data:
             self.load_data(data)
             return
@@ -70,6 +71,32 @@ class Conv2D(Layer):
         self.kernel -= (eta / size) * delta
         self.biases -= (eta / size) * self.error.sum(0)
         
+    def save_data(self):
+        data = dict()
+        data["type"] = "conv2d"
+        data["activation"] = str(self.activation)
+        data["input_size"] = self.input_size
+        data["output_size"] = self.output_size
+
+        data["kernel_amount"] = self.kernels
+        data["kernel_size"] = self.kernel_size
+
+        data["kernel"] = self.kernel.tolist()
+        data["biases"] = self.biases.tolist()
+
+        return data
+    
+    def load_data(self, data):
+        self.activation = act.create_activation(data["activation"])
+        self._input_size = data["input_size"]
+        self.output_size = data["output_size"]
+        
+        self.kernels = data["kernel_amount"]
+        self.kernel_size = data["kernel_size"]
+
+        self.kernel = np.array(data["kernel"])
+        self.biases = np.array(data["biases"])
+
     @Layer.input_size.setter
     def input_size(self, value):
         if len(value) != 3:
@@ -86,29 +113,3 @@ class Conv2D(Layer):
         self.output_size = (self.kernels, out_h, out_w)
 
         self.biases = cp.random.uniform(low = -1.0, high = 1.0, size = self.output_size)
-
-    def save_data(self):
-        data = dict()
-        data["type"] = "Conv2D"
-        data["activation"] = str(self.activation)
-        data["input_size"] = self.input_size
-        data["output_size"] = self.output_size
-
-        data["kernel_amount"] = self.kernels
-        data["kernel_size"] = self.kernel_size
-
-        data["kernel"] = self.kernel.tolist()
-        data["biases"] = self.biases.tolist()
-
-        return data
-    
-    def load_data(self, data):
-        self.activation = str(act.create_activation(data["activation"]))
-        self._input_size = data["input_size"]
-        self.output_size = data["output_size"]
-        
-        self.kernels = data["kernel_amount"]
-        self.kernel_size = data["kernel_size"]
-
-        self.kernels = np.array(data["kernel"])
-        self.biases = np.array(data["biases"])

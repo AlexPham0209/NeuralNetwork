@@ -1,9 +1,9 @@
 class Loss:
     def loss(self, actual, expected):
-        pass
+        return 0
     
     def derivative(self, actual, expected):
-        pass
+        return 0
 
     def __repr__(self):
         return ""
@@ -16,4 +16,22 @@ class MeanSquaredError(Loss):
         return actual - expected
     
     def __repr__(self):
-        return "MeanSquared"
+        return "mean_squared"
+    
+class CrossEntropy(Loss):
+    def loss(self, actual, expected):
+        return super().loss(actual, expected)
+    
+    def derivative(self, actual, expected):
+        return super().derivative(actual, expected)
+    
+    def __repr__(self):
+        return "cross_entropy"
+    
+losses = {
+    "mean_squared" : MeanSquaredError(),
+    "cross_entropy" : CrossEntropy(),
+}
+
+def create_loss(type):
+    return losses[type]

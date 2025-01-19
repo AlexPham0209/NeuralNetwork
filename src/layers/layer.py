@@ -2,7 +2,7 @@ import src.activation as act
 
 class Layer:
     def __init__(self):
-        self.input_size = ()
+        self._input_size = ()
         self.output_size = ()
 
     def feed_forward(self, a):

@@ -20,7 +20,7 @@ class Sigmoid(Activation):
         return self.activate(x) * (1 - self.activate(x))
     
     def __repr__(self): 
-        return "Sigmoid"
+        return "sigmoid"
 
 class ReLU(Activation):
     def activate(self, x):
@@ -30,7 +30,7 @@ class ReLU(Activation):
         return 1. * (x > 0)
     
     def __repr__(self): 
-        return "ReLU"
+        return "relu"
 
 class SoftMax(Activation):
     def activate(self, x):
@@ -40,7 +40,7 @@ class SoftMax(Activation):
         return self.activate(x) * (1 - self.activate(x))
     
     def __repr__(self): 
-        return "SoftMax"
+        return "softmax"
     
 class Tanh(Activation):
     def activate(self, x):
@@ -50,12 +50,12 @@ class Tanh(Activation):
         return 1 - np.tanh(x)**2 
     
     def __repr__(self): 
-        return "Tanh"
+        return "tanh"
     
 
 activations = {
     "sigmoid" : Sigmoid(),
-    "relu" : ReLU(),
+    "rel" : ReLU(),
     "softmax" : SoftMax(),
     "tanh" : Tanh()
 }

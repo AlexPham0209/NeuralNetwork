@@ -1,18 +1,26 @@
-import src.activation as act
-from src.layers.layer import Layer
 import numpy as np
 import cupy as cp
 
 import json
 import random
 
+import src.activation as act
+import src.loss as ls
+
+from src.layers.layer import Layer
+from src.layers.conv2d import Conv2D
+from src.layers.dense import Dense
+from src.layers.flatten import Flatten
+from src.layers.pooling import MaxPooling
+
 class Model:
-    def __init__(self, layers = [], input_size = (), path = ""):
+    def __init__(self, layers = [], input_size = (), loss = ls.Loss(), path = ""):
         if len(path) > 0:
             self.load_data(path)
             return
         
         self.input_size = input_size
+        self.loss = loss
         self.layers = []
         self.add_layers(layers)
 
@@ -46,23 +54,31 @@ class Model:
 
     # Trains the neural network using gradient descent
     def backpropagation(self, input, expected, eta, size):
-        # Feed forward algorithm to generate output values so we can evaluate the cost 
-        actual, activations = self.feed_forward(input)
-
         # Apply backpropagation algorithm to generate error for each layer
-        error = expected
+        error = self.calculate_loss_derivative(input, expected)
+
         for i in range(len(self.layers) - 1, -1, -1):
             curr = self.layers[i]
             error = curr.backpropagation(error, eta, size)
     
-    def calculate_cost(self, input, expected):
-        actual, activations = self.feed_forward(input)
-        
+    def calculate_loss_derivative(self, input, expected):
+        actual = self.feed_forward(input)
 
-        return 0
+        if actual.shape != expected.shape:
+            raise Exception("Size of neural network's output does not match size of expected")
+        
+        return self.loss.derivative(actual, expected)
+
+    def calculate_loss(self, input, expected):
+        actual = self.feed_forward(input)
+
+        if actual.shape != expected.shape:
+            raise Exception("Size of neural network's output does not match size of expected")
+        
+        return self.loss.loss(actual, expected)
 
     def evaluate(self, a):
-        output = self.feed_forward(cp.array([a]))[0]
+        output = self.feed_forward(cp.array([a]))
         return cp.argmax(output), output
     
     def add_layers(self, layers):
@@ -84,42 +100,47 @@ class Model:
         data = dict()
 
         #Overall neural network data
-        data["layers"] = self.layer_size
-        data["cost"] = self.c
+        data["layer_size"] = len(self.layers)
+        data["input_size"] = self.input_size
+        data["loss"] = str(self.loss)
         
         #Create new JSON key for each layer
         for i, layer in enumerate(self.layers):
-            layer_data = dict()
-            
-            layer_data["type"] = "Dense"
-            layer_data["weights_size"] = layer.weight_size
-            layer_data["biases_size"] = layer.neuron_size
-            layer_data["weights"] = layer.weights.tolist()
-            layer_data["biases"] = layer.biases.tolist()
-
-            data[i] = layer_data
+            curr = self.layers[i]
+            data[i] = curr.save_data()
 
         return data
         
     def load_data(self, path):
         #Read create dictionary from string with JSON data in it
         data = json.loads(open(path).read())
-        self.layer_size = data["layers"]
         
-        #Based on the activation_type parameter, create the activation object
-        match data["activation_type"]:
-            case "Sigmoid":
-                self.activation = act.Sigmoid()
-            case "ReLU":
-                self.activation = act.ReLU()
-        
+        self.layer_size = data["layer_size"]
+        self.input_size = data["input_size"]
+
+        self.loss = loss.create_loss(data["loss"])
+    
         #Creates layers for neural network
         self.layers = []
         for i in range(len(self.layer_size) - 1):
             layer_data = data[str(i)]
-            layer = Layer(layer_data["biases_size"], layer_data["weights_size"], self.activation)
-            layer.weights = cp.array(layer_data["weights"])
-            layer.biases = cp.array(layer_data["biases"])
+            type = layer_data["type"]
 
+            layer = None
+            match type:
+                case "dense":
+                    layer = Dense(data = layer_data)
+                case "conv2d":
+                    layer = Conv2D(data = layer_data)
+                case "pooling":
+                    layer = MaxPooling(data = layer_data)
+                case "flatten":
+                    layer = Flatten(data = layer_data)
+                case _:
+                    raise Exception("Unknown layer type during deserialization")
+                
             self.layers.append(layer)
+
+
+            
 

@@ -12,6 +12,7 @@ from src.layers.pooling import MaxPooling
 from src.layers.flatten import Flatten
 from src.network import Model
 import cupy as cp
+import src.loss as ls
 
 ROW = 28
 COL = 28
@@ -51,19 +52,13 @@ def train_network():
         Dense(10, act.Sigmoid())
     ]
     
-    network = Model(architecture, input_size = (1, 28, 28))
+    network = Model(architecture, input_size = (1, 28, 28), loss=ls.MeanSquaredError())
     network.learn(train_data, 10, 0.5, 64, debug=True)
     test(network)
 
 
-def load_network():
-    architecture = [
-        Dense(64, act.Sigmoid()), 
-        Dense(64, act.Sigmoid()), 
-        Dense(10, act.Sigmoid())
-    ]
-        
-    network = Model(architecture, input_size = ROW * COL)
+def load_network(path):        
+    network = Model(data = path)
     test(network)
 
 def test(network):

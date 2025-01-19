@@ -2,12 +2,11 @@ import random
 import numpy as np
 import cupy as cp
 from src.layers.layer import Layer
-import activation as act
+import src.activation as act
 
 class Dense(Layer):
     def __init__(self, output_size = (), activation = act.Activation(), data = None):
         super().__init__()
-
         if data:
             self.load_data(data)
             return
@@ -43,13 +42,15 @@ class Dense(Layer):
     
     def save_data(self):
         data = dict()
-        data["type"] = "Dense"
+        data["type"] = "dense"
         data["activation"] = str(self.activation)
         data["input_size"] = self.input_size
         data["output_size"] = self.output_size
 
         data["weights"] = self.weights
         data["biases"] = self.biases
+
+        return data
     
     def load_data(self, data):
         self.activation = act.create_activation(data["activation"])

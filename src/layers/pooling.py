@@ -6,7 +6,6 @@ from src.layers.layer import Layer
 class MaxPooling(Layer):
     def __init__(self, kernel_size = (), data = None):
         super().__init__()
-
         if data:
             self.load_data(data)
             return
@@ -50,6 +49,18 @@ class MaxPooling(Layer):
 
         return (self.mask * scaled)[:, :, :self.input_size[1], :self.input_size[2]]
         
+    def save_data(self):
+        data = dict()
+        data["type"] = "pooling"
+        data["input_size"] = self.input_size
+        data["output_size"] = self.output_size
+
+        return data
+
+    def load_data(self, data):
+        self._input_size = data["input_size"]
+        self.output_size = data["output_size"]
+
     @Layer.input_size.setter
     def input_size(self, value):
         if len(value) != 3:
@@ -67,12 +78,3 @@ class MaxPooling(Layer):
         # Sets the output size for the max pooling layer
         out_h, out_w = ((h + self.pad_h) - k_h) // k_h + 1, ((w + self.pad_w) - k_w) // k_w + 1
         self.output_size = (c, out_h, out_w)
-        
-    def save_data(self):
-        data = dict()
-        data["input_size"] = self.input_size
-        data["output_size"] = self.output_size
-
-    def load_data(self, data):
-        self._input_size = data["input_size"]
-        self.output_size = data["output_size"]
