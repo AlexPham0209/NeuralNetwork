@@ -31,7 +31,7 @@ class MaxPooling(Layer):
         out_c, out_h, out_w = self.output_size
         k_h, k_w = self.kernel_size
         
-        # Creates a matrix where all the maxes are equal to 1 and everything else is 0
+        # Creates a matrix where all the maxes in each window are equal to 1 and everything else is 0
         maxs = self.out.repeat(k_h, axis=2).repeat(k_w, axis=3)
         x_window = a[:, :, :out_h * k_h, :out_w * k_w]
         self.mask = cp.equal(x_window, maxs).astype(int)
@@ -63,3 +63,7 @@ class MaxPooling(Layer):
         out_h, out_w = ((h + self.pad_h) - k_h) // k_h + 1, ((w + self.pad_w) - k_w) // k_w + 1
         self.output_size = (c, out_h, out_w)
         
+    def save_data(self):
+        data = dict()
+        data["input_size"] = self.input_size
+        data["output_size"] = self.output_size

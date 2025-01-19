@@ -2,6 +2,7 @@ import random
 import numpy as np
 import cupy as cp
 from src.layers.layer import Layer
+import activation as act
 
 class Dense(Layer):
     def __init__(self, output_size, activation):
@@ -34,7 +35,7 @@ class Dense(Layer):
     # Randomizes all biases from 0 to 1 
     def randomize_biases(self):
         self.biases = cp.random.uniform(low = -1.0, high = 1.0, size = (self.output_size))
-
+    
     # Setter function that is ran when the 
     @Layer.input_size.setter
     def input_size(self, value):
@@ -47,3 +48,20 @@ class Dense(Layer):
         self.randomize_weights()
         self.randomize_biases()
 
+    def save_data(self):
+        data = dict()
+        data["type"] = "Dense"
+        data["activation"] = str(self.activation)
+        data["input_size"] = self.input_size
+        data["output_size"] = self.output_size
+
+        data["weights"] = self.weights
+        data["biases"] = self.biases
+    
+    def load_data(self, data):
+        self.activation = act.create_activation(data["activation"])
+        self.input_size = data["input_size"]
+        self.output_size = data["output_size"]
+
+        self.weights = np.array(data["weights"])
+        self.biases = np.array(data["biases"])

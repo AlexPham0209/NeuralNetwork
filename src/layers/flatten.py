@@ -18,10 +18,14 @@ class Flatten(Layer):
     def input_size(self, value):
         self._input_size = value
         self.output_size = np.prod(value)
-        # print(self.output_size)
     
-    def save_data():
+    def save_data(self):
         data = dict()
-
+        data["input_size"] = self.input_size
+        data["output_size"] = self.output_size
 
         return data
+    
+    def load_data(self, data):
+        self.input_size = data["input_size"]
+        self.output_size = data["output_size"]

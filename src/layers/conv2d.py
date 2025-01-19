@@ -28,18 +28,6 @@ class Conv2D(Layer):
 
         self.out = contract("bchwkt,nckt->bnhw", out, self.kernel) + self.biases
 
-        # res = cp.zeros((b, self.kernels, self.biases.shape[1], self.biases.shape[2]))
-        # for k in range(b):
-        #     t = cp.array(self.biases)
-        #     for i in range(self.kernels):
-        #         for j in range(self._input_size[0]):
-        #             t[i, ...] += correlate2d(a[k, j, ...], self.kernel[i, j, ...], mode="valid") 
-        #     res[k] = t
-
-        # print("dC/dI: ")
-        # print(np.allclose(self.out, t))
-        # print()
-
         return self.activation.activate(self.out)
 
     def backpropagation(self, prev, eta, size):
@@ -59,22 +47,6 @@ class Conv2D(Layer):
         new_shape = (n, c, out_h, out_w, k_h, k_w)
         new_stride = (num_stride, channel_stride, r_stride, c_stride, r_stride, c_stride)
         delta = cp.lib.stride_tricks.as_strided(kernel, new_shape, new_stride)
-
-        # res = cp.zeros((k_b, self.input_size[0], self.input_size[1], self.input_size[2]))
-        # for k in range(k_b):
-        #     t = cp.zeros(self.input_size)
-        #     for i in range(self.kernels):
-        #         for j in range(self.input_size[0]):
-        #             t[j] += convolve2d(self.kernel[i, j], self.error[k, i], "full")
-        #     res[k] = t
-
-        # other = cp.zeros((k_b, self.input_size[0], self.input_size[1], self.input_size[2]))
-        # # for k in range(k_b):
-        # #     other[k] = cp.einsum("nchwkt,nkt->chw", delta, flipped_error[k])
-
-        # print("dC/dI: ")
-        # print(cp.allclose(res, cp.einsum("nchwkt,bnkt->bchw", delta, flipped_error)))
-        # print()
         
         return contract("nchwkt,bnkt->bchw", delta, flipped_error)
 
@@ -86,22 +58,11 @@ class Conv2D(Layer):
         out_h, out_w = (h - k_h) + 1, (w - k_w) + 1
         new_shape = (b, c, out_h, out_w, k_h, k_w)
         new_stride = (batch_stride, channel_stride, r_stride, c_stride, r_stride, c_stride)
-        
+
         out = cp.lib.stride_tricks.as_strided(self.input, new_shape, new_stride)
         delta = contract("bnhwkt,bckt->cnhw", out, self.error)
-
-        # res = cp.zeros(self.kernel.shape)
-        # for k in range(b):
-        #     o = cp.zeros(self.kernel.shape)
-        #     for i in range(self.kernels):
-        #         for j in range(self.input_size[0]):
-        #             o[i, j] = correlate2d(self.input[k, j], self.error[k, i], "valid")
-        #     res += o
-            
-        # print("dC/dK")
-        # print(cp.allclose(delta, res))
-        # print()
-
+        
+        # Applies 
         self.kernel -= (eta / size) * delta
         self.biases -= (eta / size) * self.error.sum(0)
         
@@ -138,4 +99,12 @@ class Conv2D(Layer):
         return data
     
     def load_data(self, data):
+        self.activation = str(act.create_activation(data["activation"]))
+        self.input_size = data["input_size"]
+        self.output_size = data["output_size"]
         
+        self.kernels = data["kernel_amount"]
+        self.kernel_size = data["kernel_size"]
+
+        self.kernels = np.array(data["kernel"])
+        self.biases = np.array(data["biases"])
