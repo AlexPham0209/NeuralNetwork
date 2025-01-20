@@ -22,7 +22,7 @@ class MeanSquaredError(Loss):
     
 class CrossEntropy(Loss):
     def loss(self, actual, expected):
-        return -(actual * cp.log(expected) + (1 - actual) * cp.log(1 - expected)).mean(1)
+        return -(expected * cp.log(actual) + (1 - expected) * cp.log(1 - actual)).mean(1)
 
     def derivative(self, actual, expected):
         EPSILON = 1e-8
