@@ -22,6 +22,7 @@ class Conv2D(Layer):
 
     def feed_forward(self, a):
         self.input = a
+
         batch_stride, channel_stride, r_stride, c_stride = a.strides
         b, c, h, w = a.shape
         num, k_c, k_h, k_w = self.kernel.shape
@@ -94,9 +95,9 @@ class Conv2D(Layer):
         self.kernels = data["kernel_amount"]
         self.kernel_size = data["kernel_size"]
 
-        self.kernel = np.array(data["kernel"])
-        self.biases = np.array(data["biases"])
-
+        self.kernel = cp.array(data["kernel"])
+        self.biases = cp.array(data["biases"])
+    
     @Layer.input_size.setter
     def input_size(self, value):
         if len(value) != 3:

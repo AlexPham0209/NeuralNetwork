@@ -18,23 +18,18 @@ ROW = 28
 COL = 28
 
 def read_digits(path, array = False):
-    dataset = []
-    with open(path) as file:
-        for data in file.read().strip().split("\n"):
-            data = list(map(int, data.split(",")))
+    dataset = cp.genfromtxt(path, delimiter=",", usemask=True)
+    labels = dataset[:, :1]
+    data = dataset[:, 1:]
 
-            expected = data[0]
-            if array:
-                expected = cp.zeros(10)
-                expected[data[0]] = 1 
+    size = data.shape[0]
+    data = data.reshape(size, 1, 28, 28)/255
 
-            dataset.append((cp.array(data[1:]).reshape((1, 28, 28))/255, expected))
-
-    return dataset
+    return labels, data
 
 
 def train_network():
-    train_data = read_digits("C:/Users/RedAP/Desktop/mnist_train.csv", True)
+    labels, data = read_digits("C:/Users/RedAP/Desktop/mnist_train.csv")
     architecture = [
         Conv2D(32, (3, 3), act.Sigmoid()),
         MaxPooling((2, 2)),
@@ -52,8 +47,8 @@ def train_network():
         Dense(10, act.Sigmoid())
     ]
     
-    network = Model(architecture, input_size = (1, 28, 28), loss=ls.MeanSquaredError())
-    network.learn(train_data, 10, 0.5, 64, debug=True)
+    network = Model(architecture, input_size = (1, 28, 28), output_size = 10, loss=ls.MeanSquaredError())
+    network.learn(labels, data, 3, 0.5, 64, debug=True)
     test(network)
 
 
@@ -61,21 +56,20 @@ def load_network(path):
     network = Model(data = path)
     test(network)
 
-def test(network):
-    test_data = read_digits("C:/Users/RedAP/Desktop/mnist_test.csv", False)
+def test(network = None):
+    labels, data = read_digits("C:/Users/RedAP/Desktop/mnist_test.csv")
+    test_data = list(zip(labels.tolist(), data.tolist()))
     correct = 0
     wrong = 0
     
-    output = open("programs/digitrecognition/output/out.txt", "w")
     for data in test_data:
-        input, expected = data
-        actual, test = network.evaluate(input)
-        
-        output.write(f"Actual: {actual}\n")
-        output.write(f"Expected: {expected}\n")
-        output.write(f"Array: {test}\n\n")
+        label, input = data
 
-        if actual == expected:
+        label = label[0]
+        input = cp.array(input).reshape(1, 28, 28)
+        index, actual = network.evaluate(input)
+
+        if index == label:
             correct += 1 
         else:
             wrong += 1 

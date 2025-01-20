@@ -1,4 +1,3 @@
-import numpy as np
 import cupy as cp
 
 import json
@@ -14,13 +13,15 @@ from src.layers.flatten import Flatten
 from src.layers.pooling import MaxPooling
 
 class Model:
-    def __init__(self, layers = [], input_size = (), loss = ls.Loss(), path = ""):
+    def __init__(self, layers = [], input_size = (), output_size = (), loss = ls.Loss(), path = ""):
         if len(path) > 0:
             self.load_data(path)
             return
         
         self.input_size = input_size
+        self.output_size = output_size
         self.loss = loss
+
         self.layers = []
         self.add_layers(layers)
 
@@ -32,24 +33,25 @@ class Model:
 
         return a
     
-    def learn(self, dataset, epoch, eta, batch_size = 1, debug = False):
-        temp = list(dataset)
+    def learn(self, labels, data, epoch, eta, batch_size = 1, debug = False):
+        data = cp.array(data)
+        labels = cp.array(list(map(self.create_expected, labels)))
+
+        dataset = list(zip(data.tolist(), labels.tolist()))
         for i in range(epoch):
             if debug:
                 print(f"Iteration {i + 1}\n")
+
             # Randomly shuffles the dataset and partitions it into mini batches
-            random.shuffle(temp)
-            batches = [temp[j : j + batch_size] for j in range(0, len(temp), batch_size)]
-                
+            random.shuffle(dataset)
+            batches = self.get_batches(dataset, batch_size)
+            
             # Go through each mini-batch and train the neural network using each sample
             for i, batch in enumerate(batches):    
                 if debug:
                     print(f"Batch {i + 1}")
                 
-                input, expected = [list(t) for t in zip(*batch)]
-                input = cp.array(input)
-                expected = cp.array(expected)
-
+                input, expected = [cp.array(t) for t in zip(*batch)]
                 self.backpropagation(input, expected, eta, len(batch))
 
     # Trains the neural network using gradient descent
@@ -80,7 +82,7 @@ class Model:
     def evaluate(self, a):
         output = self.feed_forward(cp.array([a]))
         return cp.argmax(output), output
-    
+            
     def add_layers(self, layers):
         self.layers = []
         for i in range(len(layers)):
@@ -102,6 +104,8 @@ class Model:
         #Overall neural network data
         data["layer_size"] = len(self.layers)
         data["input_size"] = self.input_size
+        data["output_size"] = self.output_size
+
         data["loss"] = str(self.loss)
         
         #Create new JSON key for each layer
@@ -110,7 +114,7 @@ class Model:
             data[i] = curr.save_data()
 
         return data
-        
+    
     def load_data(self, path):
         #Read create dictionary from string with JSON data in it
         data = json.loads(open(path).read())
@@ -118,7 +122,7 @@ class Model:
         self.layer_size = data["layer_size"]
         self.input_size = data["input_size"]
 
-        self.loss = loss.create_loss(data["loss"])
+        self.loss = ls.create_loss(data["loss"])
     
         #Creates layers for neural network
         self.layers = []
@@ -141,6 +145,11 @@ class Model:
                 
             self.layers.append(layer)
 
-
+    def create_expected(self, x):
+        res = cp.zeros(self.output_size)
+        res[int(x)] = 1
+        return res
             
+    def get_batches(self, set, batch_size):
+        return [set[j : j + batch_size] for j in range(0, len(set), batch_size)]
 

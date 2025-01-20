@@ -1,4 +1,5 @@
 import sys
+
 sys.path.insert(1, '../NeuralNetwork')
 
 import json
@@ -7,18 +8,20 @@ import numpy as np
 import src.activation as act
 import src.network as nw
 from src.layers.dense import Dense
+from src.loss import MeanSquaredError
+import cupy as cp
 
 dataset = [
-    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]),
-    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]),
-    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], [0, 0, 0, 1, 0, 0, 0, 0, 0, 0]),
-    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], [0, 0, 0, 0, 1, 0, 0, 0, 0, 0]),
-    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], [0, 0, 0, 0, 0, 1, 0, 0, 0, 0]),
-    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], [0, 0, 0, 0, 0, 0, 1, 0, 0, 0]),
-    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], [0, 0, 0, 0, 0, 0, 0, 1, 0, 0]),
-    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], [0, 0, 0, 0, 0, 0, 0, 0, 1, 0]), 
-    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]),
+    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], 0),
+    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], 1),
+    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], 2),
+    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], 3),
+    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], 4),
+    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], 5),
+    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], 6),
+    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], 7),
+    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], 8), 
+    ([random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)], 9),
 ]
 
 def print_output(network, data):
@@ -36,10 +39,14 @@ def train():
         Dense(5, act.Sigmoid()),
         Dense(10, act.Sigmoid())
     ]
-    network = nw.Model(architecture, input_size = 3)
-
+    network = nw.Model(architecture, input_size = 3, output_size=10, loss=MeanSquaredError())
+    
+    input, expected = zip(*dataset)
+    input = cp.array(list(input))
+    expected = cp.array(list(expected))
     print_output(network, dataset)
-    network.learn(dataset, 100000, 0.5, 10)
+    
+    network.learn(expected, input, 10000, 0.5, 10)
     print()
     print_output(network, dataset)
     

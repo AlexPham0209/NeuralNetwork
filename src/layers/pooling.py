@@ -55,10 +55,13 @@ class MaxPooling(Layer):
         data["input_size"] = self.input_size
         data["output_size"] = self.output_size
 
+        data["pad_height"] = self.pad_h
+        data["pad_width"] = self.pad_w
+
         return data
 
     def load_data(self, data):
-        self._input_size = data["input_size"]
+        self.input_size = data["input_size"]
         self.output_size = data["output_size"]
 
     @Layer.input_size.setter
