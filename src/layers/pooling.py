@@ -54,15 +54,20 @@ class MaxPooling(Layer):
         data["type"] = "pooling"
         data["input_size"] = self.input_size
         data["output_size"] = self.output_size
+        data["kernel_size"] = self.kernel_size
 
-        data["pad_height"] = self.pad_h
-        data["pad_width"] = self.pad_w
+        data["pad_height"] = int(self.pad_h)
+        data["pad_width"] = int(self.pad_w)
 
         return data
 
     def load_data(self, data):
-        self.input_size = data["input_size"]
-        self.output_size = data["output_size"]
+        self._input_size = tuple(data["input_size"])
+        self.output_size = tuple(data["output_size"])
+        self.kernel_size = tuple(data["kernel_size"])
+        
+        self.pad_h = data["pad_height"]
+        self.pad_w = data["pad_width"]
 
     @Layer.input_size.setter
     def input_size(self, value):

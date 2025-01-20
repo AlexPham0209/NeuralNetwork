@@ -52,18 +52,18 @@ def train():
     
 def load():
     global dataset
-    network = nw.NeuralNetwork([3, 5, 5, 5, 5], act.Sigmoid(), "test.json")
+    network = nw.NeuralNetwork(data = "test.json")
     print_output(network, dataset)
 
 
-# while True:
-#     mode = input("Train or Load: ")
-#     match mode.lower().strip():
-#         case "train":
-#             train()
-#         case "load":
-#             load()
-#         case _:
-#             break
+while True:
+    mode = input("Train or Load: ")
+    match mode.lower().strip():
+        case "train":
+            train()
+        case "load":
+            load()
+        case _:
+            break
 
 train()

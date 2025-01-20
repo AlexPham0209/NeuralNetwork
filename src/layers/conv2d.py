@@ -79,7 +79,7 @@ class Conv2D(Layer):
         data["input_size"] = self.input_size
         data["output_size"] = self.output_size
 
-        data["kernel_amount"] = self.kernels
+        data["kernel_amount"] = int(self.kernels)
         data["kernel_size"] = self.kernel_size
 
         data["kernel"] = self.kernel.tolist()
@@ -89,11 +89,11 @@ class Conv2D(Layer):
     
     def load_data(self, data):
         self.activation = act.create_activation(data["activation"])
-        self._input_size = data["input_size"]
-        self.output_size = data["output_size"]
-        
+        self._input_size = tuple(data["input_size"])
+        self.output_size = tuple(data["output_size"])
+
         self.kernels = data["kernel_amount"]
-        self.kernel_size = data["kernel_size"]
+        self.kernel_size = tuple(data["kernel_size"])
 
         self.kernel = cp.array(data["kernel"])
         self.biases = cp.array(data["biases"])

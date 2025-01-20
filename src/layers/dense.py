@@ -47,8 +47,8 @@ class Dense(Layer):
         data["input_size"] = self.input_size
         data["output_size"] = self.output_size
 
-        data["weights"] = self.weights
-        data["biases"] = self.biases
+        data["weights"] = self.weights.tolist()
+        data["biases"] = self.biases.tolist()
 
         return data
     
@@ -56,9 +56,9 @@ class Dense(Layer):
         self.activation = act.create_activation(data["activation"])
         self._input_size = data["input_size"]
         self.output_size = data["output_size"]
-
-        self.weights = np.array(data["weights"])
-        self.biases = np.array(data["biases"])
+        
+        self.weights = cp.array(data["weights"])
+        self.biases = cp.array(data["biases"])
 
     # Setter function that is ran when the 
     @Layer.input_size.setter

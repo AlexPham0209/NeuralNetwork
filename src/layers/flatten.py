@@ -29,7 +29,7 @@ class Flatten(Layer):
         return data
 
     def load_data(self, data):
-        self._input_size = data["input_size"]
+        self._input_size = tuple(data["input_size"])
         self.output_size = data["output_size"]
 
     @Layer.input_size.setter

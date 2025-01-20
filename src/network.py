@@ -33,7 +33,7 @@ class Model:
 
         return a
     
-    def learn(self, labels, data, epoch, eta, batch_size = 1, debug = False):
+    def learn(self, data, labels, epoch, eta, batch_size = 1, debug = False):
         data = cp.array(data)
         labels = cp.array(list(map(self.create_expected, labels)))
 
@@ -121,12 +121,13 @@ class Model:
         
         self.layer_size = data["layer_size"]
         self.input_size = data["input_size"]
+        self.output_size = data["output_size"]
 
         self.loss = ls.create_loss(data["loss"])
     
         #Creates layers for neural network
         self.layers = []
-        for i in range(len(self.layer_size) - 1):
+        for i in range(self.layer_size):
             layer_data = data[str(i)]
             type = layer_data["type"]
 

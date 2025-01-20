@@ -4,6 +4,7 @@ sys.path.insert(1, '../NeuralNetwork')
 import json
 import random
 import numpy as np
+from src.encoder import NumpyEncoder
 
 import src.activation as act
 from src.layers.dense import Dense
@@ -11,6 +12,7 @@ from src.layers.conv2d import Conv2D
 from src.layers.pooling import MaxPooling
 from src.layers.flatten import Flatten
 from src.network import Model
+
 import cupy as cp
 import src.loss as ls
 
@@ -48,12 +50,17 @@ def train_network():
     ]
     
     network = Model(architecture, input_size = (1, 28, 28), output_size = 10, loss=ls.MeanSquaredError())
-    network.learn(labels, data, 3, 0.5, 64, debug=True)
+    network.learn(data, labels, 10, 0.5, 64, debug=True)
+
+    save_data = network.save_data()
+    with open("programs/digitrecognition/output/network.json", "w") as file:
+        json.dump(save_data, file, indent = 1, cls=NumpyEncoder)
+
     test(network)
 
 
 def load_network(path):        
-    network = Model(data = path)
+    network = Model(path = path)
     test(network)
 
 def test(network = None):
@@ -79,11 +86,9 @@ def test(network = None):
     print(f"Percentage: {correct / (correct + wrong)}")
 
 
-# if __name__ == "__main__":
-#     match input("Pick Mode (Train or Load): ").lower():
-#         case "train":
-#             train_network()
-#         case "load":
-#             load_network()
-
-train_network()
+if __name__ == "__main__":
+    match input("Pick Mode (Train or Load): ").lower():
+        case "train":
+            train_network()
+        case "load":
+            load_network("programs/digitrecognition/output/network.json")
