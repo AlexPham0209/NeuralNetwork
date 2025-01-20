@@ -1,6 +1,8 @@
 from scipy.special import expit
 from scipy.special import softmax
+from opt_einsum import contract
 import numpy as np
+import numpy as cp
 
 class Activation:
     def activate(self, x):
@@ -36,9 +38,16 @@ class SoftMax(Activation):
     def activate(self, x):
         return softmax(x, axis = 1)
     
-    def derivative(self, x):
-        return self.activate(x) * (1 - self.activate(x))
-    
+    def derivative(self, x): 
+        s = self.activate(x)
+        a = cp.eye(s.shape[-1])
+        temp1 = cp.zeros((s.shape[0], s.shape[1], s.shape[1]),dtype=np.float32)
+        temp2 = cp.zeros((s.shape[0], s.shape[1], s.shape[1]),dtype=np.float32)
+        temp1 = contract('ij,jk->ijk',s,a)
+        temp2 = contract('ij,ik->ijk',s,s)
+        
+        return temp1 - temp2
+
     def __repr__(self): 
         return "softmax"
     
