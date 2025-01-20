@@ -8,6 +8,7 @@ import numpy as np
 import json
 import random
 
+from src.encoder import NumpyEncoder
 from src.layers.dense import Dense
 from src.layers.conv2d import Conv2D
 from src.layers.pooling import MaxPooling
@@ -38,9 +39,27 @@ architecture = [
     Dense(64, act.Sigmoid()), 
     Dense(10, act.Sigmoid())
 ]
-    
-network = Model(architecture, input_size = (3, 32, 32), output_size = 10, loss=ls.MeanSquaredError())
-network.learn(x_train, y_train, 15, 0.5, 64, debug=True)
+
+network = None
+match input("Select Mode (Train, Load, or Continue): ").lower():
+    case "train":
+        network = Model(architecture, input_size = (3, 32, 32), output_size = 10, loss=ls.MeanSquaredError())
+        network.learn(x_train, y_train, 15, 0.5, 64, debug=True)
+
+        save_data = network.save_data()
+        with open("programs/cifar-10/network.json", "w") as file:
+            json.dump(save_data, file, indent = 1, cls=NumpyEncoder)
+
+    case "load":
+        network = Model(path = "programs/cifar-10/network.json")
+
+    case "continue":
+        network = Model(path = "programs/cifar-10/network.json")
+        network.learn(x_train, y_train, 15, 0.75, 64, debug=True)
+
+        save_data = network.save_data()
+        with open("programs/cifar-10/network.json", "w") as file:
+            json.dump(save_data, file, indent = 1, cls=NumpyEncoder)
 
 test_data = list(zip(x_test.tolist(), y_test.tolist()))
 correct = 0
