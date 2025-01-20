@@ -1,3 +1,5 @@
+import cupy as cp
+
 class Loss:
     def loss(self, actual, expected):
         return 0
@@ -20,10 +22,10 @@ class MeanSquaredError(Loss):
     
 class CrossEntropy(Loss):
     def loss(self, actual, expected):
-        return super().loss(actual, expected)
+        return -(actual * cp.log(expected) + (1 - actual) * cp.log(1 - expected)).mean(1)
     
     def derivative(self, actual, expected):
-        return super().derivative(actual, expected)
+        return ((1 - actual) / (1 - expected) - actual / expected) / actual.shape[1]
     
     def __repr__(self):
         return "cross_entropy"
