@@ -36,18 +36,15 @@ class ReLU(Activation):
 
 class SoftMax(Activation):
     def activate(self, x):
-        return softmax(x, axis = 1)
+        e_x = cp.exp(x) 
+        return e_x / e_x.sum(axis=1, keepdims=True) 
     
     def derivative(self, x): 
-        s = self.activate(x)
-        a = cp.eye(s.shape[-1])
-        temp1 = cp.zeros((s.shape[0], s.shape[1], s.shape[1]),dtype=np.float32)
-        temp2 = cp.zeros((s.shape[0], s.shape[1], s.shape[1]),dtype=np.float32)
-        temp1 = contract('ij,jk->ijk',s,a)
-        temp2 = contract('ij,ik->ijk',s,s)
+        J = - x[..., None] * x[:, None, :] # off-diagonal Jacobian
+        iy, ix = cp.diag_indices_from(J[0])
+        J[:, iy, ix] = x * (1. - x) # diagonal
+        return J.sum(axis=1) # sum across-rows for each sample
         
-        return temp1 - temp2
-
     def __repr__(self): 
         return "softmax"
     

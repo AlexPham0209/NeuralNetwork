@@ -46,15 +46,15 @@ def train_network():
         Flatten(),
         
         Dense(64, act.Sigmoid()), 
-        Dense(10, act.Sigmoid())
+        Dense(10, act.SoftMax())
     ]
     
-    network = Model(architecture, input_size = (1, 28, 28), output_size = 10, loss=ls.MeanSquaredError())
-    network.learn(data, labels, 10, 0.5, 64, debug=True)
+    network = Model(architecture, input_size = (1, 28, 28), output_size = 10, loss=ls.CrossEntropy())
+    network.learn(data, labels, 3, 0.5, 64, debug=True)
 
-    save_data = network.save_data()
-    with open("programs/digitrecognition/output/network.json", "w") as file:
-        json.dump(save_data, file, indent = 1, cls=NumpyEncoder)
+    # save_data = network.save_data()
+    # with open("programs/digitrecognition/output/network.json", "w") as file:
+    #     json.dump(save_data, file, indent = 1, cls=NumpyEncoder)
 
     test(network)
 

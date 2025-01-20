@@ -1,4 +1,8 @@
+import sys
+sys.path.insert(1, '../NeuralNetwork')
+
 import cupy as cp
+from src.activation import SoftMax
 
 a = cp.array([
     [1, 2, 3, 5, 6],
@@ -10,7 +14,7 @@ b = cp.array([
     [2, 4, 5, 4, 5],
 ])
 
-print(cp.array([a, b]).reshape(2, 10))
+# print(cp.array([a, b]).reshape(2, 10))
 
 
 k = cp.array([[1, 2, 3, 4, 5], [2, 2, 3, 4, 5], [3, 2, 3, 4, 5]]).T
@@ -52,3 +56,9 @@ f = cp.array([2, 2, 2])
 
  
 # print(cp.einsum('bkw,hw->hkw', res, b))
+
+# act = SoftMax()
+# print(act.activate(a))
+# print(act.derivative(a).shape)
+
+print(1 - a)

@@ -20,13 +20,13 @@ class Dense(Layer):
     def feed_forward(self, a):
         self.input = a
         self.out = self.weights @ a.T + self.biases[:, cp.newaxis]
+
         return self.activation.activate(self.out.T)
 
     def backpropagation(self, prev, eta, size = 1):
         # Calculate dC/dA for output
         self.error = prev.T
-        dz = self.activation.derivative(self.out.T) * self.error
-        
+        dz = self.activation.derivative(self.out.T).T * self.error
         self.weights -= (eta / size) * (dz @ self.input)
         self.biases -= (eta / size) * dz.sum(1)
         
@@ -46,7 +46,7 @@ class Dense(Layer):
         data["activation"] = str(self.activation)
         data["input_size"] = self.input_size
         data["output_size"] = self.output_size
-
+        
         data["weights"] = self.weights.tolist()
         data["biases"] = self.biases.tolist()
 

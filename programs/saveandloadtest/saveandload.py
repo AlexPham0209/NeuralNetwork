@@ -8,7 +8,7 @@ import numpy as np
 import src.activation as act
 import src.network as nw
 from src.layers.dense import Dense
-from src.loss import MeanSquaredError
+from src.loss import CrossEntropy, MeanSquaredError
 import cupy as cp
 
 dataset = [
@@ -39,14 +39,14 @@ def train():
         Dense(5, act.Sigmoid()),
         Dense(10, act.Sigmoid())
     ]
-    network = nw.Model(architecture, input_size = 3, output_size=10, loss=MeanSquaredError())
+    network = nw.Model(architecture, input_size = 3, output_size=10, loss=CrossEntropy())
     
     input, expected = zip(*dataset)
     input = cp.array(list(input))
     expected = cp.array(list(expected))
     print_output(network, dataset)
     
-    network.learn(expected, input, 10000, 0.5, 10)
+    network.learn(input, expected, 100000, 0.5, 10)
     print()
     print_output(network, dataset)
     
@@ -65,5 +65,3 @@ while True:
             load()
         case _:
             break
-
-train()
