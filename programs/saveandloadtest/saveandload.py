@@ -37,7 +37,7 @@ def train():
     architecture = [
         Dense(5, act.Sigmoid()),
         Dense(5, act.Sigmoid()),
-        Dense(10, act.Sigmoid())
+        Dense(10, act.SoftMax())
     ]
     network = nw.Model(architecture, input_size = 3, output_size=10, loss=CrossEntropy())
     

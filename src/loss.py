@@ -25,13 +25,8 @@ class CrossEntropy(Loss):
         return -(expected * cp.log(actual) + (1 - expected) * cp.log(1 - actual)).mean(1)
 
     def derivative(self, actual, expected):
-        EPSILON = 1e-8
         size = actual.shape[1]
-
-        actual = actual + EPSILON
-        expected = expected + EPSILON
-        res = ((1 - expected) / (1 - actual) - expected / actual) / size
-        return res
+        return ((1 - expected) / (1 - actual) - expected / actual) / size
 
     def __repr__(self):
         return "cross_entropy"

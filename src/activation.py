@@ -20,7 +20,7 @@ class Sigmoid(Activation):
 
     def derivative(self, x, error):
         return (self.activate(x) * (1 - self.activate(x))) * error
-    
+        
     def __repr__(self): 
         return "sigmoid"
 
@@ -38,12 +38,22 @@ class SoftMax(Activation):
     def activate(self, x):
         e_x = cp.exp(x) 
         return e_x / e_x.sum(axis=1, keepdims=True) 
-    
+
     def derivative(self, x, error): 
-        J = - x[..., None] * x[:, None, :] # off-diagonal Jacobian
-        iy, ix = cp.diag_indices_from(J[0])
-        J[:, iy, ix] = x * (1. - x) # diagonal
-        return J.sum(axis=1) # sum across-rows for each sample
+        if x.ndim != 2 or error.ndim != 2:
+            raise Exception("Softmax derivative only accepts 2D matrices")
+
+        # Calculate Jacobian matrix for all samples in batch
+        s = self.activate(x)
+        a = cp.eye(s.shape[-1])
+        temp1 = cp.zeros((s.shape[0], s.shape[1], s.shape[1]),dtype=cp.float32)
+        temp2 = cp.zeros((s.shape[0], s.shape[1], s.shape[1]),dtype=cp.float32)
+        temp1 = contract('ij,jk->ijk',s,a)
+        temp2 = contract('ij,ik->ijk',s,s)
+        J = temp1 - temp2
+
+        # Calculate the dot product between each sample and its subsequent Jacobian
+        return contract("ijk,ki->ij", J, error.T)
         
     def __repr__(self): 
         return "softmax"
