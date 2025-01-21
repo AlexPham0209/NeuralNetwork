@@ -8,7 +8,7 @@ class Activation:
     def activate(self, x):
         return x
 
-    def derivative(self, x):
+    def derivative(self, x, error):
         return x
 
     def __repr__(self): 
@@ -18,8 +18,8 @@ class Sigmoid(Activation):
     def activate(self, x):
         return expit(x)
 
-    def derivative(self, x):
-        return self.activate(x) * (1 - self.activate(x))
+    def derivative(self, x, error):
+        return (self.activate(x) * (1 - self.activate(x))) * error
     
     def __repr__(self): 
         return "sigmoid"
@@ -28,8 +28,8 @@ class ReLU(Activation):
     def activate(self, x):
         return x * (x > 0)
     
-    def derivative(self, x):
-        return 1. * (x > 0)
+    def derivative(self, x, error):
+        return (1. * (x > 0)) * error
     
     def __repr__(self): 
         return "relu"
@@ -39,7 +39,7 @@ class SoftMax(Activation):
         e_x = cp.exp(x) 
         return e_x / e_x.sum(axis=1, keepdims=True) 
     
-    def derivative(self, x): 
+    def derivative(self, x, error): 
         J = - x[..., None] * x[:, None, :] # off-diagonal Jacobian
         iy, ix = cp.diag_indices_from(J[0])
         J[:, iy, ix] = x * (1. - x) # diagonal
@@ -52,8 +52,8 @@ class Tanh(Activation):
     def activate(self, x):
         return np.tanh(x)
     
-    def derivative(self, x):
-        return 1 - np.tanh(x)**2 
+    def derivative(self, x, error):
+        return (1 - np.tanh(x)**2) * error 
     
     def __repr__(self): 
         return "tanh"

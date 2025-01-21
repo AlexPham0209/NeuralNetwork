@@ -37,7 +37,7 @@ class Conv2D(Layer):
         return self.activation.activate(self.out)
 
     def backpropagation(self, prev, eta, size):
-        self.error = prev * self.activation.derivative(self.out)
+        self.error = self.activation.derivative(self.out, prev)
         self.update_gradients(eta, size)
 
         # Calculate error for next layer
