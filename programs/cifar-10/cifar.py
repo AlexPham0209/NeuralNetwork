@@ -37,7 +37,7 @@ architecture = [
     Flatten(),
         
     Dense(64, act.Sigmoid()), 
-    Dense(10, act.Sigmoid())
+    Dense(10, act.SoftMax())
 ]
 
 network = None

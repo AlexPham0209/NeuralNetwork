@@ -51,7 +51,7 @@ class SoftMax(Activation):
         temp1 = contract('ij,jk->ijk',s,a)
         temp2 = contract('ij,ik->ijk',s,s)
         J = temp1 - temp2
-
+            
         # Calculate the dot product between each sample and its subsequent Jacobian
         return contract("ijk,ki->ij", J, error.T)
         

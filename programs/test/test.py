@@ -26,10 +26,12 @@ c = cp.array([
 e = cp.array([a, b, c])
 
 # Batch error matrix
-k = cp.array([[1, 2, 3, 4, 5], [2, 2, 3, 4, 5], [2, 2, 3, 4, 5]]).T
+k = cp.array([[1, -2, 3, 4, 5], [2, 2, 3, 4, 5], [2, 2, -3, 4, 5]])
 
-print(e)
-print()
-print(k)
-print()
-print(contract("ijk,ki->ij", e, k))
+print(cp.array([-2, -1, 0, 1, 2]) * (cp.array([-2, -1, 0, 1, 2]) > 0))
+
+# print(e)
+# print()
+# print(k)
+# print()
+# print(contract("ijk,ki->ij", e, k))

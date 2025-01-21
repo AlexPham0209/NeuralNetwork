@@ -33,16 +33,16 @@ def read_digits(path, array = False):
 def train_network():
     labels, data = read_digits("C:/Users/RedAP/Desktop/mnist_train.csv")
     architecture = [
-        Conv2D(32, (3, 3), act.Sigmoid()),
+        Conv2D(32, (3, 3), act.ReLU()),
         MaxPooling((2, 2)),
 
-        Conv2D(64, (3, 3), act.Sigmoid()),
+        Conv2D(64, (3, 3), act.ReLU()),
         MaxPooling((2, 2)),
 
-        Conv2D(128, (3, 3), act.Sigmoid()),
+        Conv2D(128, (3, 3), act.ReLU()),
         MaxPooling((2, 2)),
     
-        Conv2D(128, (2, 2), act.Sigmoid()),
+        Conv2D(128, (2, 2), act.ReLU()),
         Flatten(),
         
         Dense(64, act.Sigmoid()), 
@@ -50,11 +50,11 @@ def train_network():
     ]
     
     network = Model(architecture, input_size = (1, 28, 28), output_size = 10, loss=ls.CrossEntropy())
-    network.learn(data, labels, 3, 0.5, 64, debug=True)
+    network.learn(data, labels, 3, 0.1, 64, debug=True)
 
-    # save_data = network.save_data()
-    # with open("programs/digitrecognition/output/network.json", "w") as file:
-    #     json.dump(save_data, file, indent = 1, cls=NumpyEncoder)
+    save_data = network.save_data()
+    with open("programs/digitrecognition/output/network.json", "w") as file:
+        json.dump(save_data, file, indent = 1, cls=NumpyEncoder)
 
     test(network)
 
@@ -69,6 +69,7 @@ def test(network = None):
     correct = 0
     wrong = 0
     
+    file = open("programs/digitrecognition/output/out.txt", "w")
     for data in test_data:
         label, input = data
 
@@ -80,6 +81,10 @@ def test(network = None):
             correct += 1 
         else:
             wrong += 1 
+
+        file.write(f"Expected: {label}\n")
+        file.write(f"Actual: {index}\n")
+        file.write(f"Vector: {actual.reshape(actual.shape[1])}\n\n")
 
     print(f"Correct: {correct}")
     print(f"Wrong: {wrong}")
