@@ -13,7 +13,7 @@ from src.layers.flatten import Flatten
 from src.layers.pooling import MaxPooling
 
 class Model:
-    def __init__(self, layers = [], input_size = (), output_size = (), loss = ls.Loss(), path = ""):
+    def __init__(self, layers = [], input_size = (), output_size = (), loss = ls.Loss(), clipping = (-1, 1), path = ""):
         if len(path) > 0:
             self.load_data(path)
             return
@@ -21,6 +21,7 @@ class Model:
         self.input_size = input_size
         self.output_size = output_size
         self.loss = loss
+        self.clipping = clipping
 
         self.layers = []
         self.add_layers(layers)
@@ -28,15 +29,19 @@ class Model:
     def feed_forward(self, a):
         # If size of the input vector does not match the amount of neurons in the input layer, return None
         # Go through each layer and feed forward
+        print("damn")
         for layer in self.layers:
+            print("what")
+            print(a)
             a = layer.feed_forward(a)
+        print(a)
 
         return a
     
     def learn(self, data, labels, epoch, eta, batch_size = 1, debug = False):
         data = cp.array(data)
         labels = cp.array(list(map(self.create_expected, labels)))
-
+        
         dataset = list(zip(data.tolist(), labels.tolist()))
         for i in range(epoch):
             if debug:
@@ -58,18 +63,23 @@ class Model:
     def backpropagation(self, input, expected, eta, size):
         # Apply backpropagation algorithm to generate error for each layer
         error = self.calculate_loss_derivative(input, expected)
+        min, max = self.clipping
 
         for i in range(len(self.layers) - 1, -1, -1):
+            # print(error)
+            # print()
             curr = self.layers[i]
-            error = curr.backpropagation(error, eta, size)
-    
-    def calculate_loss_derivative(self, input, expected):
-        actual = self.feed_forward(input)
+            error = cp.clip(curr.backpropagation(error, eta, size, self.clipping), min, max)
 
+    def calculate_loss_derivative(self, input, expected):
+        min, max = self.clipping
+        actual = self.feed_forward(input)
+        
         if actual.shape != expected.shape:
             raise Exception("Size of neural network's output does not match size of expected")
         
-        return self.loss.derivative(actual, expected)
+        print(self.loss.derivative(actual, expected))
+        return cp.clip(self.loss.derivative(actual, expected), min, max)
 
     def calculate_loss(self, input, expected):
         actual = self.feed_forward(input)

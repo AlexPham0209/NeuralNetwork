@@ -21,9 +21,9 @@ COL = 28
 
 def read_digits(path, array = False):
     dataset = cp.genfromtxt(path, delimiter=",", usemask=True)
-    labels = dataset[:, :1]
-    data = dataset[:, 1:]
-
+    labels = dataset[:1, :1]
+    data = dataset[:1, 1:]
+    
     size = data.shape[0]
     data = data.reshape(size, 1, 28, 28)/255
 
@@ -39,19 +39,19 @@ def train_network():
         Conv2D(64, (3, 3), act.ReLU()),
         MaxPooling((2, 2)),
 
-        Conv2D(128, (3, 3), act.ReLU()),
-        MaxPooling((2, 2)),
-    
-        Conv2D(128, (2, 2), act.ReLU()),
+        # Conv2D(128, (3, 3), act.ReLU()),
+        # MaxPooling((2, 2)),
+        
+        # Conv2D(128, (2, 2), act.ReLU()),
         Flatten(),
         
-        Dense(64, act.Sigmoid()), 
+        Dense(64, act.ReLU()), 
         Dense(10, act.SoftMax())
     ]
     
-    network = Model(architecture, input_size = (1, 28, 28), output_size = 10, loss=ls.CrossEntropy())
-    network.learn(data, labels, 3, 0.1, 64, debug=True)
-
+    network = Model(architecture, input_size = (1, 28, 28), output_size = 10, loss = ls.CrossEntropy(), clipping = (-0.5, 0.5))
+    network.learn(data, labels, 1, 0.05, 1, debug=True)
+    
     save_data = network.save_data()
     with open("programs/digitrecognition/output/network.json", "w") as file:
         json.dump(save_data, file, indent = 1, cls=NumpyEncoder)

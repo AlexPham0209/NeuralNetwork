@@ -42,13 +42,13 @@ class MaxPooling(Layer):
     
         return self.out
     
-    def backpropagation(self, prev, eta, size = 1):
+    def backpropagation(self, prev, eta, size = 1, clipping = (-1, 1)):
         self.error = prev
         w, h = self.kernel_size
         scaled = prev.repeat(h, axis=2).repeat(w, axis=3)
-
-        return (self.mask * scaled)[:, :, :self.input_size[1], :self.input_size[2]]
         
+        return (self.mask * scaled)[:, :, :self.input_size[1], :self.input_size[2]]
+
     def save_data(self):
         data = dict()
         data["type"] = "pooling"

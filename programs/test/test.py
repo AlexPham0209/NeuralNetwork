@@ -4,6 +4,7 @@ sys.path.insert(1, '../NeuralNetwork')
 import cupy as cp
 from src.activation import SoftMax
 from opt_einsum import contract
+from src.activation import ReLU
 
 a = cp.array([
     [1, 2, 3, 5, 6],
@@ -26,9 +27,11 @@ c = cp.array([
 e = cp.array([a, b, c])
 
 # Batch error matrix
-k = cp.array([[1, -2, 3, 4, 5], [2, 2, 3, 4, 5], [2, 2, -3, 4, 5]])
+k = cp.array([e, e, e])
 
-print(cp.array([-2, -1, 0, 1, 2]) * (cp.array([-2, -1, 0, 1, 2]) > 0))
+relu = ReLU()
+print(relu.derivative(k, k))
+# print(cp.array([-2, -1, 0, 1, 2]) * (cp.array([-2, -1, 0, 1, 2]) > 0))
 
 # print(e)
 # print()

@@ -26,10 +26,10 @@ class Sigmoid(Activation):
 
 class ReLU(Activation):
     def activate(self, x):
-        return x * (x > 0)
+        return cp.maximum(0., x)
     
     def derivative(self, x, error):
-        return (1. * (x > 0)) * error
+        return cp.greater(x, 0.).astype(np.float32) * error
     
     def __repr__(self): 
         return "relu"
@@ -42,7 +42,7 @@ class SoftMax(Activation):
     def derivative(self, x, error): 
         if x.ndim != 2 or error.ndim != 2:
             raise Exception("Softmax derivative only accepts 2D matrices")
-
+        
         # Calculate Jacobian matrix for all samples in batch
         s = self.activate(x)
         a = cp.eye(s.shape[-1])
