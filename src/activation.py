@@ -26,17 +26,18 @@ class Sigmoid(Activation):
 
 class ReLU(Activation):
     def activate(self, x):
-        return cp.maximum(0., x)
+        return cp.maximum(0.01 * x, x)
     
     def derivative(self, x, error):
-        return cp.greater(x, 0.).astype(np.float32) * error
+        return cp.where(x > 0, 1, 0.01) * error
     
     def __repr__(self): 
         return "relu"
 
 class SoftMax(Activation):
     def activate(self, x):
-        e_x = cp.exp(x) 
+        max_x = np.amax(x, 1).reshape(x.shape[0],1)
+        e_x = cp.exp(x - max_x) 
         return e_x / e_x.sum(axis=1, keepdims=True) 
 
     def derivative(self, x, error): 

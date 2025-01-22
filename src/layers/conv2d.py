@@ -36,10 +36,10 @@ class Conv2D(Layer):
         
         return self.activation.activate(self.out)
 
-    def backpropagation(self, prev, eta, size, clipping = (-1, 1)):
+    def backpropagation(self, prev, eta, size):
         self.error = self.activation.derivative(self.out, prev)
 
-        self.update_gradients(eta, size, clipping)
+        self.update_gradients(eta, size)
 
         # Calculate error for next layer
         flipped_error = self.error[:, :, ::-1, ::-1]
@@ -57,9 +57,7 @@ class Conv2D(Layer):
         
         return contract("nchwkt,bnkt->bchw", delta, flipped_error)
 
-    def update_gradients(self, eta, size = 1, clipping = (-1, 1)):
-        min, max = clipping
-
+    def update_gradients(self, eta, size = 1):
         b, c, h, w = self.input.shape
         batch_stride, channel_stride, r_stride, c_stride = self.input.strides
         k_b, k_c, k_h, k_w = self.error.shape
@@ -71,8 +69,8 @@ class Conv2D(Layer):
         out = cp.lib.stride_tricks.as_strided(self.input, new_shape, new_stride)
         delta = contract("bnhwkt,bckt->cnhw", out, self.error)
         
-        self.kernel -= cp.clip((eta / size) * delta, min, max)
-        self.biases -= cp.clip((eta / size) * self.error.sum(0), min, max)
+        self.kernel -= (eta / size) * delta
+        self.biases -= (eta / size) * self.error.sum(0)
         
     def save_data(self):
         data = dict()

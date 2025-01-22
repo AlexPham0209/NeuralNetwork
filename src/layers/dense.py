@@ -23,18 +23,17 @@ class Dense(Layer):
 
         return self.activation.activate(self.out.T)
 
-    def backpropagation(self, prev, eta, size = 1, clipping = (-1, 1)):
+    def backpropagation(self, prev, eta, size = 1):
         # Calculate dC/dA for output
         self.error = prev.T
-        min, max = clipping
 
         # Activation derivative only processes matrices (NumSamples, SampleSize)
         # Since the form of the inputs currently are in (SampleSize, NumSamples) we are transposing the matrices 
         # Then since the output has to transposed back so we can apply the following operations
         dz = self.activation.derivative(self.out.T, self.error.T).T
 
-        self.weights -= cp.clip((eta / size) * (dz @ self.input), min, max)
-        self.biases -= cp.clip((eta / size) * dz.sum(1), min, max)
+        self.weights -= (eta / size) * (dz @ self.input)
+        self.biases -= (eta / size) * dz.sum(1)
         
         return (self.weights.T @ dz).T
         

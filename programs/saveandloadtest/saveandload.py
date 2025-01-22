@@ -39,14 +39,14 @@ def train():
         Dense(5, act.ReLU()),
         Dense(10, act.SoftMax())
     ]
-    network = nw.Model(architecture, input_size = 3, output_size = 10, loss = CrossEntropy(), clipping = (-0.5, 0.5))
+    network = nw.Model(architecture, input_size = 3, output_size = 10, loss = CrossEntropy())
     
     input, expected = zip(*dataset)
     input = cp.array(list(input))
     expected = cp.array(list(expected))
     print_output(network, dataset)
     
-    network.learn(input, expected, 10000, 0.05, 10)
+    network.learn(input, expected, 10000, 0.5, 10)
     print()
     print_output(network, dataset)
     

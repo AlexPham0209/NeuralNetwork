@@ -42,7 +42,7 @@ class MaxPooling(Layer):
     
         return self.out
     
-    def backpropagation(self, prev, eta, size = 1, clipping = (-1, 1)):
+    def backpropagation(self, prev, eta, size = 1):
         self.error = prev
         w, h = self.kernel_size
         scaled = prev.repeat(h, axis=2).repeat(w, axis=3)
