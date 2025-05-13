@@ -1,4 +1,4 @@
-import src.activation as act
+import activation as act
 
 class Layer:
     def __init__(self):
@@ -8,7 +8,7 @@ class Layer:
     def feed_forward(self, a):
         pass
     
-    def backpropagation(self, prev, eta, size = 1, clipping = (-1, 1)):
+    def backpropagation(self, prev, eta, size = 1):
         pass
     
     def save_data(self):

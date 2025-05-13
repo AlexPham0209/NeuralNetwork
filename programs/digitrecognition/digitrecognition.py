@@ -1,20 +1,19 @@
 import sys
-sys.path.insert(1, '../NeuralNetwork')
 
 import json
 import random
 import numpy as np
-from src.encoder import NumpyEncoder
+from encoder import NumpyEncoder
 
-import src.activation as act
-from src.layers.dense import Dense
-from src.layers.conv2d import Conv2D
-from src.layers.pooling import MaxPooling
-from src.layers.flatten import Flatten
-from src.network import Model
+import activation as act
+from layers.dense import Dense
+from layers.conv2d import Conv2D
+from layers.pooling import MaxPooling
+from layers.flatten import Flatten
+from network import Model
 
 import cupy as cp
-import src.loss as ls
+import loss as ls
 
 ROW = 28
 COL = 28
@@ -50,7 +49,7 @@ def train_network():
     ]
     
     network = Model(architecture, input_size = (1, 28, 28), output_size = 10, loss = ls.CrossEntropy())
-    network.learn(data, labels, 3, 0.1, 32, debug=True)
+    network.learn(data, labels, 3, 0.01, 32, debug=True)
     
     save_data = network.save_data()
     with open("programs/digitrecognition/output/network.json", "w") as file:

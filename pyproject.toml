@@ -1,0 +1,12 @@
+[project]
+name = "ph"
+description = "Python library to build 2D convolutional neural networks from scratch"
+version = "0.0.1"
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+    "numpy>=2.0.2",
+    "scikit-learn>=1.6.1",
+    "opt_einsum>=3.4.0"
+]

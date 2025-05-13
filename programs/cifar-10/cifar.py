@@ -8,12 +8,12 @@ import numpy as np
 import json
 import random
 
-from src.encoder import NumpyEncoder
-from src.layers.dense import Dense
-from src.layers.conv2d import Conv2D
-from src.layers.pooling import MaxPooling
-from src.layers.flatten import Flatten
-from src.network import Model
+from encoder import NumpyEncoder
+from layers.dense import Dense
+from layers.conv2d import Conv2D
+from layers.pooling import MaxPooling
+from layers.flatten import Flatten
+from network import Model
 
 import src.activation as act
 import src.loss as ls

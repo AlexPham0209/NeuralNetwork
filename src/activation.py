@@ -17,7 +17,7 @@ class Activation:
 class Sigmoid(Activation):
     def activate(self, x):
         return expit(x)
-
+    
     def derivative(self, x, error):
         return (self.activate(x) * (1 - self.activate(x))) * error
         

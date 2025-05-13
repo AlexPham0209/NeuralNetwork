@@ -1,0 +1,12 @@
+Metadata-Version: 2.4
+Name: ph
+Version: 0.0.1
+Summary: Python library to build 2D convolutional neural networks from scratch
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: numpy>=2.0.2
+Requires-Dist: scikit-learn>=1.6.1
+Requires-Dist: opt_einsum>=3.4.0
+
+# NeuralNetwork
+Neural network I written in Python

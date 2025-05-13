@@ -3,14 +3,14 @@ import cupy as cp
 import json
 import random
 
-import src.activation as act
-import src.loss as ls
+import activation as act
+import loss as ls
 
-from src.layers.layer import Layer
-from src.layers.conv2d import Conv2D
-from src.layers.dense import Dense
-from src.layers.flatten import Flatten
-from src.layers.pooling import MaxPooling
+from layers.layer import Layer
+from layers.conv2d import Conv2D
+from layers.dense import Dense
+from layers.flatten import Flatten
+from layers.pooling import MaxPooling
 
 class Model:
     def __init__(self, layers = [], input_size = (), output_size = (), loss = ls.Loss(), path = ""):
