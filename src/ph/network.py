@@ -34,26 +34,28 @@ class Model:
 
         return a
     
-    def learn(self, data, labels, epoch, eta, batch_size = 1, debug = False):
-        data = cp.array(data)
-        labels = cp.array(labels)
+    def learn(self, x, y, valid_set, epoch, eta, batch_size = 1, debug = False):
+        valid_x, valid_y = valid_set
+        train_set = list(zip(x, y))
+        valid_set = list(zip(valid_x, valid_y))
 
-        dataset = list(zip(data.tolist(), labels.tolist()))
         for curr_epoch in range(epoch):
             # Randomly shuffles the dataset and partitions it into mini batches
-            random.shuffle(dataset)
-            batches = self.get_batches(dataset, batch_size)
+            random.shuffle(train_set)
+            random.shuffle(valid_set)
+
+            batches = self.get_batches(train_set, batch_size)
             
             # Go through each mini-batch and train the neural network using each sample
             train_loss = self.train(curr_epoch, batches, eta)
             print(f"Training Loss: {train_loss}\n")
 
-            # valid_loss = self.validate(batches)
-            # print(f"Validation Loss: {train_loss}\n")
-
-    def train(self, epoch, batches, eta):
+            valid_loss = self.validate(valid_set)
+            print(f"Valid Loss: {valid_loss}\n")
+    
+    def train(self, epoch, train_set, eta):
         total_loss = 0
-        for batch in tqdm(batches, desc=f"Epoch {epoch}"):   
+        for batch in tqdm(train_set, desc=f"Epoch {epoch}"):   
             features, expected = zip(*batch)
             features = [cp.array(batch) for batch in features]
             expected = [cp.array(batch) for batch in expected]
@@ -64,28 +66,36 @@ class Model:
             loss = self.backpropagation(features, expected, eta, features.shape[0])
             total_loss += loss * features.shape[0]
 
-        return total_loss / len(batches)
+        return total_loss / len(train_set)
 
-    def validate(self, batches):
+    def validate(self, valid_set):
         total_loss = 0
-        for batch in tqdm(batches, desc=f"Validating..."):    
-            features, expected = zip(*batch)
-            features = [cp.array(batch) for batch in features]
-            expected = [cp.array(batch) for batch in expected]
-
-            features = cp.stack(features)
-            expected = cp.stack(expected)
+        for features, expected in tqdm(valid_set, desc=f"Validating..."):    
+            features = features[cp.newaxis, :]
+            expected = expected[cp.newaxis, :]
 
             # Feed forward input and calculate features
             actual = self.feed_forward(features)
             loss = self.loss.loss(actual, expected)
 
-            total_loss += loss * features.shape[0]
-        
-        return total_loss / len(batches)
+            total_loss += loss
 
-    def test():
-        pass
+        return total_loss / len(valid_set)
+
+    def test(self, x, y):
+        total_loss = 0
+        test_set = zip(x, y)
+        for features, expected in tqdm(test_set, desc=f"Validating..."):    
+            features = features[cp.newaxis, :]
+            expected = expected[cp.newaxis, :]
+
+            # Feed forward input and calculate features
+            actual = self.feed_forward(features)
+            loss = self.loss.loss(actual, expected)
+
+            total_loss += loss
+
+        return total_loss / len(test_set)
 
     # Trains the neural network using gradient descent
     def backpropagation(self, input, expected, eta, size):
@@ -96,14 +106,6 @@ class Model:
             error = curr.backpropagation(error, eta, size)
 
         return loss
-
-    def calculate_loss_derivative(self, input, expected):
-        actual = self.feed_forward(input)
-        
-        if actual.shape != expected.shape:
-            raise Exception("Size of neural network's output does not match size of expected")
-        
-        return actual, self.loss.derivative(actual, expected)
     
     def calculate_loss(self, input, expected):
         actual = self.feed_forward(input)

@@ -18,11 +18,7 @@ dataset = [
 def print_output(network, data):
     for data in dataset:
         index, vector = network.evaluate(data[0])
-        print(index)
-        print(vector)
-        print()
-        print()
-    
+
 def train():
     global dataset 
     architecture = [
@@ -37,7 +33,7 @@ def train():
     expected = cp.array(list(expected))
     print_output(network, dataset)
 
-    network.learn(input, expected, 10000, 0.01, 10)
+    network.learn(input, expected, (input, expected), 10000, 0.01, 2)
     print()
     print_output(network, dataset)
     

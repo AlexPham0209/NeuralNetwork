@@ -5,7 +5,7 @@ import random
 import numpy as np
 from encoder import NumpyEncoder
 
-import activation as act
+import layers.activation as act
 from layers.dense import Dense
 from layers.conv2d import Conv2D
 from layers.pooling import MaxPooling
