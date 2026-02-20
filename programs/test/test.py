@@ -2,9 +2,9 @@ import sys
 sys.path.insert(1, '../NeuralNetwork')
 
 import cupy as cp
-from src.activation import SoftMax
+from layers.activation import SoftMax
 from opt_einsum import contract
-from src.activation import ReLU
+from layers.activation import ReLU
 
 a = cp.array([
     [1, 2, 3, 5, 6],

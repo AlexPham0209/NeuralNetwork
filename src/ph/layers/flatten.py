@@ -1,6 +1,6 @@
 import numpy as np
 import cupy as cp
-from layers.layer import Layer
+from ph.layers.layer import Layer
 
 class Flatten(Layer):
     def __init__(self, data = None):

@@ -1,9 +1,9 @@
 import sys
 sys.path.insert(1, '../NeuralNetwork')
 
-from src.layers.conv2d import Conv2D
-from src.layers.pooling import MaxPooling
-import src.activation as act
+from ph.layers.conv2d import Conv2D
+from ph.layers.pooling import MaxPooling
+import ph.layers.activation as act
 import numpy as np
 
 layer = Conv2D(5, (2, 2), act.Sigmoid())

@@ -14,7 +14,7 @@ from layers.pooling import MaxPooling
 from layers.flatten import Flatten
 from network import Model
 
-import src.activation as act
+import layers.activation as act
 import src.loss as ls
 
 (x_train, y_train), (x_test, y_test) = keras.datasets.cifar10.load_data()

@@ -1,4 +1,4 @@
-import layers.activation as act
+import ph.layers.activation as act
 
 class Layer:
     def __init__(self):

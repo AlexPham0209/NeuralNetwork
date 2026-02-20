@@ -3,14 +3,14 @@ import cupy as cp
 import json
 import random
 
-import layers.activation as act
-import loss as ls
+import ph.layers.activation as act
+import ph.loss as ls
 
-from layers.layer import Layer
-from layers.conv2d import Conv2D
-from layers.dense import Dense
-from layers.flatten import Flatten
-from layers.pooling import MaxPooling
+from ph.layers.layer import Layer
+from ph.layers.conv2d import Conv2D
+from ph.layers.dense import Dense
+from ph.layers.flatten import Flatten
+from ph.layers.pooling import MaxPooling
 from tqdm import tqdm
 
 class Model:
@@ -39,21 +39,50 @@ class Model:
         labels = cp.array(labels)
 
         dataset = list(zip(data.tolist(), labels.tolist()))
-        for i in range(epoch):
+        for curr_epoch in range(epoch):
             # Randomly shuffles the dataset and partitions it into mini batches
             random.shuffle(dataset)
             batches = self.get_batches(dataset, batch_size)
             
             # Go through each mini-batch and train the neural network using each sample
-            
+            train_loss = self.train(curr_epoch, batches, eta)
+            print(f"Training Loss: {train_loss}\n")
 
-    def train(batches):
-        for expected in tqdm(batches, desc=):    
-            input, expected = [cp.array(t) for t in zip(*batch)]
-            self.backpropagation(input, expected, eta, len(batch))
+            # valid_loss = self.validate(batches)
+            # print(f"Validation Loss: {train_loss}\n")
 
-    def validate():
-        pass
+    def train(self, epoch, batches, eta):
+        total_loss = 0
+        for batch in tqdm(batches, desc=f"Epoch {epoch}"):   
+            features, expected = zip(*batch)
+            features = [cp.array(batch) for batch in features]
+            expected = [cp.array(batch) for batch in expected]
+
+            features = cp.stack(features)
+            expected = cp.stack(expected)
+
+            loss = self.backpropagation(features, expected, eta, features.shape[0])
+            total_loss += loss * features.shape[0]
+
+        return total_loss / len(batches)
+
+    def validate(self, batches):
+        total_loss = 0
+        for batch in tqdm(batches, desc=f"Validating..."):    
+            features, expected = zip(*batch)
+            features = [cp.array(batch) for batch in features]
+            expected = [cp.array(batch) for batch in expected]
+
+            features = cp.stack(features)
+            expected = cp.stack(expected)
+
+            # Feed forward input and calculate features
+            actual = self.feed_forward(features)
+            loss = self.loss.loss(actual, expected)
+
+            total_loss += loss * features.shape[0]
+        
+        return total_loss / len(batches)
 
     def test():
         pass
@@ -61,11 +90,12 @@ class Model:
     # Trains the neural network using gradient descent
     def backpropagation(self, input, expected, eta, size):
         # Apply backpropagation algorithm to generate error for each layer
-        error = self.calculate_loss_derivative(input, expected)
+        loss, error = self.calculate_loss(input, expected)
 
-        for i in range(len(self.layers) - 1, -1, -1):
-            curr = self.layers[i]
+        for curr in self.layers[::-1]:
             error = curr.backpropagation(error, eta, size)
+
+        return loss
 
     def calculate_loss_derivative(self, input, expected):
         actual = self.feed_forward(input)
@@ -73,15 +103,15 @@ class Model:
         if actual.shape != expected.shape:
             raise Exception("Size of neural network's output does not match size of expected")
         
-        return self.loss.derivative(actual, expected)
-
+        return actual, self.loss.derivative(actual, expected)
+    
     def calculate_loss(self, input, expected):
         actual = self.feed_forward(input)
 
         if actual.shape != expected.shape:
             raise Exception("Size of neural network's output does not match size of expected")
         
-        return self.loss.loss(actual, expected)
+        return self.loss.loss(actual, expected), self.loss.derivative(actual, expected)
 
     def evaluate(self, a):
         output = self.feed_forward(cp.array([a]))

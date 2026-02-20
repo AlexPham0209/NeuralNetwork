@@ -12,7 +12,7 @@ class Loss:
     
 class MeanSquaredError(Loss):
     def loss(self, actual, expected):
-        return ((expected - actual) ** 2).mean(1)
+        return ((expected - actual) ** 2).mean(1).mean(0)
     
     def derivative(self, actual, expected):
         return actual - expected
@@ -22,7 +22,7 @@ class MeanSquaredError(Loss):
     
 class CrossEntropy(Loss):
     def loss(self, actual, expected):
-        return -(expected * cp.log(actual) + (1 - expected) * cp.log(1 - actual)).mean(1)
+        return -(expected * cp.log(actual) + (1 - expected) * cp.log(1 - actual)).mean(1).mean(0)
 
     def derivative(self, actual, expected):
         EPSILON = 1e-8
@@ -42,3 +42,8 @@ losses = {
 
 def create_loss(type):
     return losses[type]
+
+loss = MeanSquaredError()
+actual = cp.array([[1, 2, 3], [4, 5, 6]])
+expected = cp.array([[1, 2, 3], [4, 5, 6]])
+print(loss.loss(actual, expected))

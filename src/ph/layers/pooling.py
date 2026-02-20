@@ -1,7 +1,7 @@
 import numpy as np
 import cupy as cp
 from skimage.measure import block_reduce
-from layers.layer import Layer
+from ph.layers.layer import Layer
 
 class MaxPooling(Layer):
     def __init__(self, kernel_size = (), data = None):

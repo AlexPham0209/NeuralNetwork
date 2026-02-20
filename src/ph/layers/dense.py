@@ -1,8 +1,8 @@
 import random
 import numpy as np
 import cupy as cp
-from layers.layer import Layer
-import layers.activation as act
+from ph.layers.layer import Layer
+import ph.layers.activation as act
 
 class Dense(Layer):
     def __init__(self, output_size = (), activation = act.Activation(), data = None):

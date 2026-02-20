@@ -4,8 +4,8 @@ from cupyx.scipy.signal import correlate2d
 import cupy as cp
 from opt_einsum import contract
 
-from layers.layer import Layer
-import activation as act
+from ph.layers.layer import Layer
+import ph.layers.activation as act
 
 import random
 
