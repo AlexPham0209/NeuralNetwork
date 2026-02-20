@@ -1,4 +1,4 @@
-import activation as act
+import layers.activation as act
 
 class Layer:
     def __init__(self):
@@ -20,7 +20,7 @@ class Layer:
     @property
     def input_size(self):
         return self._input_size
-
+    
     @input_size.setter
     def input_size(self, value):
         self._input_size = value

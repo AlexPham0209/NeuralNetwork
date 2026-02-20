@@ -1,7 +1,5 @@
 import sys
 
-sys.path.insert(1, '../NeuralNetwork')
-
 import json
 import random
 import numpy as np

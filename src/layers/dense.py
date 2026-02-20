@@ -2,7 +2,7 @@ import random
 import numpy as np
 import cupy as cp
 from layers.layer import Layer
-import activation as act
+import layers.activation as act
 
 class Dense(Layer):
     def __init__(self, output_size = (), activation = act.Activation(), data = None):
@@ -31,7 +31,7 @@ class Dense(Layer):
         # Since the form of the inputs currently are in (SampleSize, NumSamples) we are transposing the matrices 
         # Then since the output has to transposed back so we can apply the following operations
         dz = self.activation.derivative(self.out.T, self.error.T).T
-
+        
         self.weights -= (eta / size) * (dz @ self.input)
         self.biases -= (eta / size) * dz.sum(1)
         

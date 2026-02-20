@@ -1,5 +1,4 @@
 import sys
-sys.path.insert(1, '../NeuralNetwork')
 
 import keras
 import cupy as cp

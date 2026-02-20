@@ -3,7 +3,7 @@ import cupy as cp
 import json
 import random
 
-import activation as act
+import layers.activation as act
 import loss as ls
 
 from layers.layer import Layer
@@ -11,6 +11,7 @@ from layers.conv2d import Conv2D
 from layers.dense import Dense
 from layers.flatten import Flatten
 from layers.pooling import MaxPooling
+from tqdm import tqdm
 
 class Model:
     def __init__(self, layers = [], input_size = (), output_size = (), loss = ls.Loss(), path = ""):
@@ -35,24 +36,27 @@ class Model:
     
     def learn(self, data, labels, epoch, eta, batch_size = 1, debug = False):
         data = cp.array(data)
-        labels = cp.array(list(map(self.create_expected, labels)))
+        labels = cp.array(labels)
 
         dataset = list(zip(data.tolist(), labels.tolist()))
         for i in range(epoch):
-            if debug:
-                print(f"Iteration {i + 1}\n")
-
             # Randomly shuffles the dataset and partitions it into mini batches
             random.shuffle(dataset)
             batches = self.get_batches(dataset, batch_size)
             
             # Go through each mini-batch and train the neural network using each sample
-            for i, batch in enumerate(batches):    
-                if debug:
-                    print(f"Batch {i + 1}")
-                
-                input, expected = [cp.array(t) for t in zip(*batch)]
-                self.backpropagation(input, expected, eta, len(batch))
+            
+
+    def train(batches):
+        for expected in tqdm(batches, desc=):    
+            input, expected = [cp.array(t) for t in zip(*batch)]
+            self.backpropagation(input, expected, eta, len(batch))
+
+    def validate():
+        pass
+
+    def test():
+        pass
 
     # Trains the neural network using gradient descent
     def backpropagation(self, input, expected, eta, size):
@@ -145,11 +149,6 @@ class Model:
                     raise Exception("Unknown layer type during deserialization")
                 
             self.layers.append(layer)
-
-    def create_expected(self, x):
-        res = cp.zeros(self.output_size)
-        res[int(x)] = 1
-        return res
             
     def get_batches(self, set, batch_size):
         return [set[j : j + batch_size] for j in range(0, len(set), batch_size)]
