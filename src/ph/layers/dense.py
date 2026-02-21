@@ -16,26 +16,22 @@ class Dense(Layer):
         
         self.error = cp.zeros(self.output_size)
         self.out = cp.zeros(self.output_size)
-
+    
     def feed_forward(self, a):
         self.input = a
-        self.out = self.weights @ a.T + self.biases[:, cp.newaxis]
-
-        return self.activation.activate(self.out.T)
+        self.out = a @ self.weights.T + self.biases[cp.newaxis, :]
+        
+        return self.activation.activate(self.out)
 
     def backpropagation(self, prev, eta, size = 1):
         # Calculate dC/dA for output
-        self.error = prev.T
+        self.error = prev
 
-        # Activation derivative only processes matrices (NumSamples, SampleSize)
-        # Since the form of the inputs currently are in (SampleSize, NumSamples) we are transposing the matrices 
-        # Then since the output has to transposed back so we can apply the following operations
-        dz = self.activation.derivative(self.out.T, self.error.T).T
+        dz = self.activation.derivative(self.out, self.error)
+        self.weights -= (eta / size) * (dz.T @ self.input)
+        self.biases -= (eta / size) * dz.sum(0)
         
-        self.weights -= (eta / size) * (dz @ self.input)
-        self.biases -= (eta / size) * dz.sum(1)
-        
-        return (self.weights.T @ dz).T
+        return dz @ self.weights
         
     # Randomizes all weights from 0 to 1 
     def randomize_weights(self):
@@ -76,3 +72,4 @@ class Dense(Layer):
         # Once we know what the input size is, we create the weights and biases
         self.randomize_weights()
         self.randomize_biases()
+

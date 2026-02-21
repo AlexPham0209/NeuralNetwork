@@ -18,12 +18,16 @@ dataset = [
 def print_output(network, data):
     for data in dataset:
         index, vector = network.evaluate(data[0])
+        print(index)
+        print(vector)
+        print()
 
 def train():
     global dataset 
     architecture = [
         Dense(5, act.ReLU()),
-        Dense(5, act.ReLU()),
+        Dense(100, act.ReLU()),
+        Dense(100, act.ReLU()),
         Dense(3, act.SoftMax())
     ]
     network = nw.Model(architecture, input_size = 3, output_size = 3, loss = CrossEntropy())
@@ -33,7 +37,7 @@ def train():
     expected = cp.array(list(expected))
     print_output(network, dataset)
 
-    network.learn(input, expected, (input, expected), 10000, 0.01, 2)
+    network.learn(input, expected, (input, expected), 10000, 0.01, 10)
     print()
     print_output(network, dataset)
     

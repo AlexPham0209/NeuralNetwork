@@ -48,20 +48,17 @@ class Model:
             
             # Go through each mini-batch and train the neural network using each sample
             train_loss = self.train(curr_epoch, batches, eta)
-            print(f"Training Loss: {train_loss}\n")
+            print(f"Training Loss: {train_loss:.2f}\n")
 
             valid_loss = self.validate(valid_set)
-            print(f"Valid Loss: {valid_loss}\n")
+            print(f"Valid Loss: {valid_loss:.2f}\n")
     
     def train(self, epoch, train_set, eta):
         total_loss = 0
         for batch in tqdm(train_set, desc=f"Epoch {epoch}"):   
             features, expected = zip(*batch)
-            features = [cp.array(batch) for batch in features]
-            expected = [cp.array(batch) for batch in expected]
-
-            features = cp.stack(features)
-            expected = cp.stack(expected)
+            features = cp.array(features)
+            expected = cp.array(expected)
 
             loss = self.backpropagation(features, expected, eta, features.shape[0])
             total_loss += loss * features.shape[0]
@@ -70,7 +67,7 @@ class Model:
 
     def validate(self, valid_set):
         total_loss = 0
-        for features, expected in tqdm(valid_set, desc=f"Validating..."):    
+        for features, expected in tqdm(valid_set, desc=f"Validating"):    
             features = features[cp.newaxis, :]
             expected = expected[cp.newaxis, :]
 
