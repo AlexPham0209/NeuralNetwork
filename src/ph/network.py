@@ -43,7 +43,7 @@ class Model:
             # Randomly shuffles the dataset and partitions it into mini batches
             random.shuffle(train_set)
             random.shuffle(valid_set)
-            
+
             batches = self.get_batches(train_set, batch_size)
             
             # Go through each mini-batch and train the neural network using each sample
@@ -52,25 +52,25 @@ class Model:
 
             valid_loss = self.validate(valid_set)
             print(f"Valid Loss: {valid_loss:.2f}\n")
-    
+        
     def train(self, epoch, train_set, eta):
-        total_loss = 0
+        total_loss = 0.0
         for batch in tqdm(train_set, desc=f"Epoch {epoch}"):   
             features, expected = zip(*batch)
             features = cp.array(features)
             expected = cp.array(expected)
             
-            loss = self.backpropagation(features, expected, eta, features.shape[0])
+            loss = self._backpropagation(features, expected, eta, features.shape[0])
             total_loss += loss * features.shape[0]
 
         return total_loss / len(train_set)
 
     def validate(self, valid_set):
-        total_loss = 0
+        total_loss = 0.0
         for features, expected in tqdm(valid_set, desc=f"Validating"):    
             features = features[cp.newaxis, :]
             expected = expected[cp.newaxis, :]
-
+        
             # Feed forward input and calculate features
             actual = self.feed_forward(features)
             loss = self.loss.loss(actual, expected)
@@ -95,16 +95,16 @@ class Model:
         return total_loss / len(test_set)
 
     # Trains the neural network using gradient descent
-    def backpropagation(self, input, expected, eta, size):
+    def _backpropagation(self, input, expected, eta, size):
         # Apply backpropagation algorithm to generate error for each layer
-        loss, error = self.calculate_loss(input, expected)
+        loss, error = self._calculate_loss(input, expected)
 
         for curr in self.layers[::-1]:
             error = curr.backpropagation(error, eta, size)
 
         return loss
     
-    def calculate_loss(self, input, expected):
+    def _calculate_loss(self, input, expected):
         actual = self.feed_forward(input)
 
         if actual.shape != expected.shape:

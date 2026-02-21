@@ -2,8 +2,8 @@ import ph.layers.activation as act
 
 class Layer:
     def __init__(self):
-        self._input_size = ()
-        self.output_size = ()
+        self._input_size = None
+        self.output_size = None
 
     def feed_forward(self, a):
         pass

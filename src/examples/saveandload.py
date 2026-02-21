@@ -25,12 +25,14 @@ def print_output(network, data):
 def train():
     global dataset 
     architecture = [
-        Dense(5, act.Sigmoid()),
-        Dense(1000, act.Sigmoid()),
-        Dense(1000, act.Sigmoid()),
-        Dense(1000, act.Sigmoid()),
-        Dense(1000, act.Sigmoid()),
-        Dense(3, act.SoftMax())
+        Dense(5),
+        act.Sigmoid(),
+
+        Dense(250),
+        act.Sigmoid(),
+
+        Dense(3),
+        act.SoftMax(),
     ]
     network = nw.Model(architecture, input_size = 3, output_size = 3, loss = CrossEntropy())
     
@@ -39,7 +41,7 @@ def train():
     expected = cp.array(list(expected))
     print_output(network, dataset)
 
-    network.learn(input, expected, (input, expected), 2500, 1e-3, 10)
+    network.learn(input, expected, (input, expected), 10000, 0.01, 1)
     print()
     print_output(network, dataset)
     
