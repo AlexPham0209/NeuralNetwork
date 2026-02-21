@@ -28,7 +28,10 @@ def train():
         Dense(5),
         act.Sigmoid(),
 
-        Dense(250),
+        Dense(1000),
+        act.Sigmoid(),
+
+        Dense(1000),
         act.Sigmoid(),
 
         Dense(3),

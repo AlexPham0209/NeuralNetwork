@@ -30,9 +30,19 @@ class Sigmoid(Activation):
     def backpropagation(self, prev, eta, size = 1):
         return (self.out * (1 - self.out)) * prev
     
-    def __repr__(self): 
-        return "sigmoid"
-
+    def save_data(self):
+        data = dict()
+        data["type"] = "relu"
+        data["input_size"] = self.input_size
+        data["output_size"] = self.output_size
+        
+        return data
+    
+    def load_data(self, data):
+        self._input_size = data["input_size"]
+        self.output_size = data["output_size"]
+        
+    
 class ReLU(Activation):
     def feed_forward(self, a):
         self.input = a
@@ -41,6 +51,8 @@ class ReLU(Activation):
     
     def backpropagation(self, prev, eta, size = 1):
         return cp.where(self.input > 0, 1, 0.01) * prev
+    
+
 
     def __repr__(self): 
         return "relu"
@@ -58,7 +70,7 @@ class SoftMax(Activation):
             raise Exception("Softmax derivative only accepts 2D matrices")
 
         # Calculate Jacobian matrix for all samples in batch
-        s = self.feed_forward(self.input)
+        s = self.out
         a = cp.eye(s.shape[-1])
         temp1 = cp.zeros((s.shape[0], s.shape[1], s.shape[1]),dtype=cp.float32)
         temp2 = cp.zeros((s.shape[0], s.shape[1], s.shape[1]),dtype=cp.float32)
@@ -84,7 +96,6 @@ class Tanh(Activation):
     def __repr__(self): 
         return "tanh"
     
-
 activations = {
     "sigmoid" : Sigmoid(),
     "rel" : ReLU(),
@@ -93,5 +104,3 @@ activations = {
 }
 
 
-def create_activation(type):
-    return activations[type]

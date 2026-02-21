@@ -10,13 +10,11 @@ import ph.layers.activation as act
 import random
 
 class Conv2D(Layer):
-    def __init__(self, kernels = 0, kernel_size = (0, 0), activation = act.Activation(), data = None):
+    def __init__(self, kernels = 0, kernel_size = (0, 0), data = None):
         super().__init__()
         if data:
             self.load_data(data)
             return
-
-        self.activation = activation
         self.kernel_size = kernel_size
         self.kernels = kernels
 
@@ -34,10 +32,10 @@ class Conv2D(Layer):
         out = cp.lib.stride_tricks.as_strided(a, new_shape, new_stride)
         self.out = contract("bchwkt,nckt->bnhw", out, self.kernel) + self.biases
         
-        return self.activation.activate(self.out)
+        return self.out
 
     def backpropagation(self, prev, eta, size):
-        self.error = self.activation.derivative(self.out, prev)
+        self.error = prev
             
         self.update_gradients(eta, size)
 
