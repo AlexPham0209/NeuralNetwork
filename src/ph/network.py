@@ -13,8 +13,10 @@ from ph.layers.flatten import Flatten
 from ph.layers.pooling import MaxPooling
 from tqdm import tqdm
 
+from ph.metrics import Metric
+
 class Model:
-    def __init__(self, layers = [], input_size = (), output_size = (), loss = ls.Loss(), path = ""):
+    def __init__(self, layers = [], input_size = (), output_size = (), loss = ls.Loss(), metric = None, path = ""):
         if len(path) > 0:
             self.load_data(path)
             return
@@ -22,6 +24,7 @@ class Model:
         self.input_size = input_size
         self.output_size = output_size
         self.loss = loss
+        self.metric = metric
 
         self.layers = []
         self.add_layers(layers)
@@ -39,11 +42,11 @@ class Model:
         train_set = list(zip(x, y))
         valid_set = list(zip(valid_x, valid_y))
 
-        for curr_epoch in range(epoch):
+        for curr_epoch in range(1, epoch + 1):
             # Randomly shuffles the dataset and partitions it into mini batches
             random.shuffle(train_set)
             random.shuffle(valid_set)
-
+            
             batches = self.get_batches(train_set, batch_size)
             
             # Go through each mini-batch and train the neural network using each sample
@@ -51,7 +54,10 @@ class Model:
             print(f"Training Loss: {train_loss:.2f}\n")
 
             valid_loss = self.validate(valid_set)
-            print(f"Valid Loss: {valid_loss:.2f}\n")
+            if self.metric: 
+                print(f"Valid Loss: {valid_loss:.2f}\t{self.metric}\n")
+            else:
+                print(f"Valid Loss: {valid_loss:.2f}")
         
     def train(self, epoch, train_set, eta):
         total_loss = 0.0
@@ -67,14 +73,16 @@ class Model:
 
     def validate(self, valid_set):
         total_loss = 0.0
+        self.metric.reset()
         for features, expected in tqdm(valid_set, desc=f"Validating"):    
             features = features[cp.newaxis, :]
             expected = expected[cp.newaxis, :]
-        
+
             # Feed forward input and calculate features
             actual = self.feed_forward(features)
             loss = self.loss.loss(actual, expected)
 
+            self.metric.update(actual, expected)
             total_loss += loss
 
         return total_loss / len(valid_set)

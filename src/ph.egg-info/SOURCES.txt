@@ -1,8 +1,11 @@
 README.md
 pyproject.toml
+src/examples/digit_recognition.py
+src/examples/saveandload.py
 src/ph/__init__.py
 src/ph/encoder.py
 src/ph/loss.py
+src/ph/metrics.py
 src/ph/network.py
 src/ph.egg-info/PKG-INFO
 src/ph.egg-info/SOURCES.txt

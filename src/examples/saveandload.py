@@ -24,20 +24,7 @@ def print_output(network, data):
 
 def train():
     global dataset 
-    architecture = [
-        Dense(5),
-        act.Sigmoid(),
-
-        Dense(1000),
-        act.Sigmoid(),
-
-        Dense(1000),
-        act.Sigmoid(),
-
-        Dense(3),
-        act.SoftMax(),
-    ]
-    network = nw.Model(architecture, input_size = 3, output_size = 3, loss = CrossEntropy())
+    
     
     input, expected = zip(*dataset)
     input = cp.array(list(input))

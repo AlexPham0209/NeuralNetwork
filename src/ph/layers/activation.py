@@ -6,13 +6,7 @@ import numpy as cp
 
 from ph.layers.layer import Layer
 
-class Activation(Layer):
-    def feed_forward(self, a):
-        pass
-
-    def backpropagation(self, prev, eta, size = 1):
-        pass
-    
+class Activation(Layer):    
     @Layer.input_size.setter
     def input_size(self, value):
         self._input_size = value
@@ -52,8 +46,6 @@ class ReLU(Activation):
     def backpropagation(self, prev, eta, size = 1):
         return cp.where(self.input > 0, 1, 0.01) * prev
     
-
-
     def __repr__(self): 
         return "relu"
 
@@ -96,11 +88,4 @@ class Tanh(Activation):
     def __repr__(self): 
         return "tanh"
     
-activations = {
-    "sigmoid" : Sigmoid(),
-    "rel" : ReLU(),
-    "softmax" : SoftMax(),
-    "tanh" : Tanh()
-}
-
 

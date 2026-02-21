@@ -9,6 +9,7 @@ Requires-Dist: scikit-learn>=1.6.1
 Requires-Dist: opt_einsum>=3.4.0
 Requires-Dist: cupy-cuda12x>=13.3.0
 Requires-Dist: tqdm>=4.67.3
+Requires-Dist: keras>=3.8.0
 
 # NeuralNetwork
 Neural network I written in Python
