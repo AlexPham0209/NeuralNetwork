@@ -8,14 +8,17 @@ from ph.layers.pooling import MaxPooling
 from ph.loss import CrossEntropy
 from ph.metric import Accuracy
 from ph.network import Model
-from keras.datasets import mnist
+from keras.datasets import cifar10
 import cupy as cp
 
-(train_X, train_y), (test_X, test_y) = mnist.load_data()
+(train_X, train_y), (test_X, test_y) = cifar10.load_data()
 
 # Flatten images
-train_X = train_X.reshape(train_X.shape[0], 1, train_X.shape[1], train_X.shape[2])
-test_X = test_X.reshape(test_X.shape[0], 1, test_X.shape[1], test_X.shape[2])
+train_X = cp.transpose(train_X, axes=(0, 3, 1, 2))
+test_X = cp.transpose(test_X, axes=(0, 3, 1, 2))
+
+train_X = train_X / 255.0
+test_X = test_X / 255.0
 
 # Convert labels to one-hot encoded vectors
 encoder = OneHotEncoder().fit(train_y.reshape(-1, 1))
@@ -33,29 +36,25 @@ architecture = [
     MaxPooling(kernel_size=(3, 3)),
     Sigmoid(),
 
-
-    Conv2D(kernels=8, kernel_size=(3, 3)),
+    Conv2D(kernels=32, kernel_size=(3, 3)),
     MaxPooling(kernel_size=(3, 3)),
     Sigmoid(),
 
     Flatten(),
 
-    Dense(512),
-    Sigmoid(),
-
-    Dense(512),
+    Dense(1024),
     Sigmoid(),
 
     Dense(train_y.shape[-1]),
     SoftMax(),
 ]
 
-network = Model(architecture, input_size = (1, 28, 28), output_size = train_y.shape[-1], loss = CrossEntropy(), metric=Accuracy())
+network = Model(architecture, input_size = (3, 32, 32), output_size = train_y.shape[-1], loss = CrossEntropy(), metric=Accuracy())
 network.learn(
     x = train_X,
     y = train_y,
     valid_set=(test_X, test_y),
     epoch=30,
-    eta=1e-1,
+    eta=0.1,
     batch_size=32
 )
