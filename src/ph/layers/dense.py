@@ -26,7 +26,7 @@ class Dense(Layer):
     def backpropagation(self, prev, eta, size = 1):
         # Calculate dC/dA for output
         self.error = prev
-
+        
         dz = self.activation.derivative(self.out, self.error)
         self.weights -= (eta / size) * (dz.T @ self.input)
         self.biases -= (eta / size) * dz.sum(0)

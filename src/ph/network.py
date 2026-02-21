@@ -43,7 +43,7 @@ class Model:
             # Randomly shuffles the dataset and partitions it into mini batches
             random.shuffle(train_set)
             random.shuffle(valid_set)
-
+            
             batches = self.get_batches(train_set, batch_size)
             
             # Go through each mini-batch and train the neural network using each sample
@@ -59,7 +59,7 @@ class Model:
             features, expected = zip(*batch)
             features = cp.array(features)
             expected = cp.array(expected)
-
+            
             loss = self.backpropagation(features, expected, eta, features.shape[0])
             total_loss += loss * features.shape[0]
 

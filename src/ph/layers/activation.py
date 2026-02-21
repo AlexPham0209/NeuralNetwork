@@ -39,7 +39,7 @@ class SoftMax(Activation):
         max_x = np.amax(x, 1).reshape(x.shape[0],1)
         e_x = cp.exp(x - max_x) 
         return e_x / e_x.sum(axis=1, keepdims=True) 
-
+    
     def derivative(self, x, error): 
         if x.ndim != 2 or error.ndim != 2:
             raise Exception("Softmax derivative only accepts 2D matrices")
