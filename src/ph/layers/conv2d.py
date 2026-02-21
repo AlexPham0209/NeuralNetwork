@@ -20,7 +20,7 @@ class Conv2D(Layer):
 
     def feed_forward(self, a):
         self.input = a
-
+        
         batch_stride, channel_stride, r_stride, c_stride = a.strides
         b, c, h, w = a.shape
         num, k_c, k_h, k_w = self.kernel.shape

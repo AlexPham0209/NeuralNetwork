@@ -13,7 +13,7 @@ from ph.layers.flatten import Flatten
 from ph.layers.pooling import MaxPooling
 from tqdm import tqdm
 
-from ph.metrics import Metric
+from ph.metric import Metric
 
 class Model:
     def __init__(self, layers = [], input_size = (), output_size = (), loss = ls.Loss(), metric = None, path = ""):
