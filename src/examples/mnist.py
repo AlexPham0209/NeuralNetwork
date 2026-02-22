@@ -1,5 +1,9 @@
+import json
+
+from matplotlib import pyplot as plt
 from sklearn.preprocessing import OneHotEncoder
 
+from ph.encoder import NumpyEncoder
 from ph.layers.activation import ReLU, Sigmoid, SoftMax
 from ph.layers.conv2d import Conv2D
 from ph.layers.dense import Dense
@@ -17,6 +21,10 @@ import cupy as cp
 train_X = train_X.reshape(train_X.shape[0], 1, train_X.shape[1], train_X.shape[2])
 test_X = test_X.reshape(test_X.shape[0], 1, test_X.shape[1], test_X.shape[2])
 
+# Normalize
+train_X = train_X / 255.0
+test_X = test_X / 255.0
+
 # Convert labels to one-hot encoded vectors
 encoder = OneHotEncoder().fit(train_y.reshape(-1, 1))
 train_y = encoder.transform(train_y.reshape(-1, 1)).toarray()
@@ -32,29 +40,42 @@ architecture = [
     Conv2D(kernels=16, kernel_size=(3, 3)),
     MaxPooling(kernel_size=(3, 3)),
     Sigmoid(),
-
     Conv2D(kernels=8, kernel_size=(3, 3)),
     MaxPooling(kernel_size=(3, 3)),
     Sigmoid(),
-
     Flatten(),
-
     Dense(512),
     Sigmoid(),
-
     Dense(512),
     Sigmoid(),
-
     Dense(train_y.shape[-1]),
     SoftMax(),
 ]
 
-network = Model(architecture, input_size = (1, 28, 28), output_size = train_y.shape[-1], loss = CrossEntropy(), metric=Accuracy())
-network.learn(
-    x = train_X,
-    y = train_y,
-    valid_set=(test_X, test_y),
-    epoch=30,
-    eta=1e-1,
-    batch_size=32
+network = Model(
+    layers=architecture,
+    input_size=(1, 28, 28),
+    output_size=train_y.shape[-1],
+    loss=CrossEntropy(),
+    metric=Accuracy(),
 )
+
+network.learn(
+    x=train_X, y=train_y, valid_set=(test_X, test_y), epoch=10, eta=1e-1, batch_size=32
+)
+
+num_rows = 2
+num_cols = 5
+figure, axis = plt.subplots(num_rows, num_cols)
+
+for i in range(num_rows):
+    for j in range(num_cols):
+        image = test_X[i * num_cols + j]
+        label = test_y[i * num_cols + j]
+
+        predicted, _ = network.evaluate(image)
+        axis[i, j].set_title(f"Label: {predicted}")
+        axis[i, j].imshow(cp.asnumpy(image.reshape(28, 28)))
+        axis[i, j].axis("off")
+
+plt.show()

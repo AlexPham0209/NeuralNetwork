@@ -35,26 +35,23 @@ architecture = [
     Conv2D(kernels=16, kernel_size=(3, 3)),
     MaxPooling(kernel_size=(3, 3)),
     Sigmoid(),
-
     Conv2D(kernels=32, kernel_size=(3, 3)),
     MaxPooling(kernel_size=(3, 3)),
     Sigmoid(),
-
     Flatten(),
-
     Dense(1024),
     Sigmoid(),
-
     Dense(train_y.shape[-1]),
     SoftMax(),
 ]
 
-network = Model(architecture, input_size = (3, 32, 32), output_size = train_y.shape[-1], loss = CrossEntropy(), metric=Accuracy())
+network = Model(
+    architecture,
+    input_size=(3, 32, 32),
+    output_size=train_y.shape[-1],
+    loss=CrossEntropy(),
+    metric=Accuracy(),
+)
 network.learn(
-    x = train_X,
-    y = train_y,
-    valid_set=(test_X, test_y),
-    epoch=30,
-    eta=0.1,
-    batch_size=32
+    x=train_X, y=train_y, valid_set=(test_X, test_y), epoch=30, eta=0.1, batch_size=32
 )

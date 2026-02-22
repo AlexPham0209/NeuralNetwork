@@ -1,5 +1,3 @@
-import ph.layers.activation as act
-
 class Layer:
     def __init__(self):
         self._input_size = None
@@ -7,10 +5,10 @@ class Layer:
 
     def feed_forward(self, a):
         pass
-    
-    def backpropagation(self, prev, eta, size = 1):
+
+    def backpropagation(self, prev, eta, size=1):
         pass
-    
+
     def save_data(self):
         return dict()
 
@@ -20,7 +18,7 @@ class Layer:
     @property
     def input_size(self):
         return self._input_size
-    
+
     @input_size.setter
     def input_size(self, value):
         self._input_size = value
