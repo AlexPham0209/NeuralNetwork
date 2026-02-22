@@ -1,4 +1,4 @@
-# Ph: Convolutional and Feedforward Neural Network from Scratch
+# Ph: Convolutional Neural Network from Scratch
 Ph is a deep learning library written from scratch using only Python and CuPy (a GPU-accelerated version of NumPy). The purpose of the project is to learn about the major concepts behind convolutional neural networks: convolutions, pooling, feed forward and networks.
 
 Requires CUDA.
