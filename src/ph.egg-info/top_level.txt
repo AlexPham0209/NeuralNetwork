@@ -1,5 +1,0 @@
-activation
-encoder
-layers
-loss
-network
