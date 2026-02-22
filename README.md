@@ -1,6 +1,8 @@
 # Ph: Convolutional and Feedforward Neural Network from Scratch
 Ph is a deep learning library written from scratch using only Python and CuPy (a GPU-accelerated version of NumPy). The purpose of the project is to learn about major concepts behind convolutional neural networks: convolutions, pooling, feed forward and networks.
 
+Requires CUDA.
+
 ## Usage
 First, install the project and execute the following command to build the project and download all dependencies.
 
@@ -8,10 +10,13 @@ First, install the project and execute the following command to build the projec
 pip install -e .
 ```
 
-Then, to run the MNIST demo, run the following from the root: 
+Then, to run the MNIST demo, run this command from the root: 
 ```
 python src/examples/mnist.py
 ```
+
+Then after running, you should see the image below: 
+[MNIST visual](images/mnist.png)
 
 ## Layer Types
 You are able to build your model using Convolution, Max Pooling, Dense, and the Flatten layer.
