@@ -16,7 +16,7 @@ python src/examples/mnist.py
 ```
 
 Then after running, you should see the image below: 
-[MNIST visual](images/mnist.png)
+![MNIST visual](images/mnist.png)
 
 ## Layer Types
 You are able to build your model using Convolution, Max Pooling, Dense, and the Flatten layer.
